@@ -2,8 +2,9 @@
   "name": "the-journal",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "frontend/main.js",
   "scripts": {
+    "start": "electron . --disable-gpu",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
