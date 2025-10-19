@@ -1,0 +1,29 @@
+# Node.js
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# VSCode and IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Misc
+.env
+*.bak
+*.tmp
