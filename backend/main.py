@@ -1,18 +1,35 @@
+# backend/main.py
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-import database # Import our database module
+from fastapi.middleware.cors import CORSMiddleware
+from backend import database             # ABSOLUTE import
+from backend.routers import notes        # ABSOLUTE import
 
-# Create a FastAPI application instance
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup code
+    print("Starting up...")
     database.create_tables()
     yield
-    # Shutdown code (if needed)
+    print("Shutting down...")
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    title="The Journal API",
+    description="API for a simple note-taking application.",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
-@app.get("/")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(notes.router)
+
+@app.get("/", tags=["Root"])
 def read_root():
-    """A simple root endpoint to confirm the API is running."""
     return {"status": "The Journal API is running"}
