@@ -1,0 +1,18 @@
+[project]
+name = "the-journal"
+version = "0.1.0"
+description = "A journal app using FastAPI and Uvicorn"
+authors = [
+    { name = "sololobo", email = "smshaon02@yahoo.com" },
+    { name = "t4sd", email = "sdtapusd20@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
