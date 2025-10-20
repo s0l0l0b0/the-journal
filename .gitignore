@@ -2,6 +2,9 @@
 node_modules/
 npm-debug.log*
 package-lock.json
+/frontend/dist/
+/frontend/build/
+/frontend/node_modules/
 
 # Python
 .venv/
