@@ -3,14 +3,13 @@
 
 from typing import AsyncGenerator
 
+from app.core.config import settings
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-
-from backend.core.config import settings
 
 engine: AsyncEngine = create_async_engine(settings.DATABASE_URL, echo=True)
 AsyncLocalSession = async_sessionmaker(

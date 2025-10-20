@@ -12,6 +12,7 @@ __pycache__/
 *.pyo
 *.pyd
 *.pyc
+*.egg-info/
 
 # VSCode and IDEs
 .vscode/

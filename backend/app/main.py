@@ -5,14 +5,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.core import database  # ABSOLUTE import
-from backend.routers import notes  # ABSOLUTE import
+from app.core.database import create_tables
+from app.routers import notes  # ABSOLUTE import
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting up...")
-    await database.create_tables()
+    await create_tables()
     yield
     print("Shutting down...")
 

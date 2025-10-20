@@ -5,8 +5,9 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend import crud, schemas
-from backend.core.database import get_db_connection  # direct import for DI
+from app.core.database import get_db_connection  # direct import for DI
+from app.schemas import schemas
+from app.services import note_service as crud
 
 router = APIRouter(
     prefix="/notes",

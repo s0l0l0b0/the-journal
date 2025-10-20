@@ -2,10 +2,9 @@
 
 from typing import List, Optional
 
+from app.schemas import schemas
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from backend import schemas
 
 
 def _to_dict_from_mapping(mapping) -> Optional[dict]:
