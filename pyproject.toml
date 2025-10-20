@@ -10,9 +10,16 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi",
     "uvicorn",
-    "pydantic"
+    "pydantic",
+    "sqlmodel>=0.0.27",
+    "aiosqlite>=0.21.0",
+    "pydantic-settings>=2.11.0",
+    "sqlalchemy[asyncio]>=2.0.44",
 ]
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = ["frontend"]
