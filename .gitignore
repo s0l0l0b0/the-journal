@@ -1,18 +1,18 @@
 # Node.js
-node_modules/
+**/node_modules/
 npm-debug.log*
 package-lock.json
-/frontend/dist/
-/frontend/build/
-/frontend/node_modules/
+frontend/dist/
+frontend/build/
 
 # Python
-.venv/
+**/.venv/
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.pyc
+*.egg-info/
 
 # VSCode and IDEs
 .vscode/

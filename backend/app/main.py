@@ -1,23 +1,27 @@
 # backend/main.py
 
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend import database             # ABSOLUTE import
-from backend.routers import notes        # ABSOLUTE import
+
+from app.core.database import create_tables
+from app.routers import notes  # ABSOLUTE import
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting up...")
-    database.create_tables()
+    await create_tables()
     yield
     print("Shutting down...")
+
 
 app = FastAPI(
     title="The Journal API",
     description="API for a simple note-taking application.",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -30,6 +34,7 @@ app.add_middleware(
 
 app.include_router(notes.router)
 
+
 @app.get("/", tags=["Root"])
-def read_root():
+async def read_root():
     return {"status": "The Journal API is running"}

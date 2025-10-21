@@ -4,33 +4,24 @@ This is the FastAPI backend for The Journal.
 
 ## Setup
 
-1. Create and activate a Python virtual environment (recommended):
+1. Install [uv](https://github.com/astral-sh/uv) if you don't already have it installed in your system.
+
+2. Create and activate a Python virtual environment installing necessary dependencies:
 
     Using `uv`:
     ```bash
-    uv venv --python 3.12
+    uv sync
     source .venv/bin/activate
     ```
-
-    Or using Python directly:
-    ```bash
-    python3.12 -m venv .venv
-    source .venv/bin/activate
-    ```
-
-2. Install dependencies using [uv](https://github.com/astral-sh/uv):
-    ```bash
-    uv pip install -r pyproject.toml   
-    ```
-    This will install all dependencies specified in `pyproject.toml`.
+    This will install all dependencies specified in `pyproject.toml` and actiavte the virtualenv.
 
 3. Run the development server:
-    ```bash
-    uvicorn backend.main:app --reload
-    ```
+- First go to the root of `backend` directory with `cd backend`
+- Run the fastapi server in development mode using `uv run uvicorn app.main:app --reload`
+- This will hot reload new changes automatically
 
 ## Notes
 
 - Requires Python 3.12 or higher.
 - Make sure you have `uv` installed (`pip install uv` if needed).
-- All dependencies (including `uvicorn` and `pydantic`) are managed via `pyproject.toml`.
+- All dependencies are managed via `pyproject.toml`.
