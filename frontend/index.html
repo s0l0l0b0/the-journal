@@ -1,18 +1,52 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <meta charset="UTF-8">
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <!-- a basic CSP that allows scripts and styles from the same origin -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <title>The Journal</title>
     <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <h1>The Journal</h1>
-    <p>Check the developer console for API data.</p>
+</head>
+<body>
+    <div id="app-container">
+        <!-- The sidebar for navigation and note lists -->
+        <div id="sidebar">
+            <div id="sidebar-header">
+                <button id="new-note-btn" class="sidebar-btn">New Note</button>
+            </div>
+            <div id="notes-list-container">
+                <ul id="notes-list">
+                    <!-- Active notes will be dynamically inserted here -->
+                </ul>
+            </div>
+            <div id="sidebar-footer">
+                <button id="recycle-bin-btn" class="sidebar-btn">Recycle Bin</button>
+            </div>
+        </div>
+
+        <!-- The main content area where the editor will live -->
+        <div id="main-content">
+            <div id="editor-container" class="hidden">
+                <input type="text" id="note-title" placeholder="Your note title..." />
+                <textarea id="note-content" placeholder="Start writing..."></textarea>
+                <button id="delete-note-btn">Delete Note</button>
+            </div>
+
+            <div id="recycle-bin-actions-container" class="hidden">
+              <h3>Recycle Bin</h3>
+              <p>This note is in the recycle bin.</p>
+              <div class="action-buttons">
+                  <button id="restore-note-btn" class="action-btn restore">Restore Note</button>
+                  <button id="perm-delete-note-btn" class="action-btn permanent-delete">Permanently Delete</button>
+              </div>
+            </div>
+            
+            <div id="welcome-message">
+                <h2>Select a note to start editing, or create a new one.</h2>
+            </div>
+        </div>
+    </div>
 
     <!-- The defer attribute ensures the script runs after the document is parsed -->
     <script defer src="renderer.js"></script>
-  </body>
+</body>
 </html>

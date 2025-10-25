@@ -98,4 +98,62 @@ ipcMain.handle('get-notes', async () => {
   }
 });
 
-// Add more ipcMain.handle calls here for create, update, delete etc.
+ipcMain.handle('get-deleted-notes', async () => {
+    try {
+        const response = await axios.get(`${backendUrl}/notes/deleted`);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to get deleted notes:', error.message);
+        return null;
+    }
+});
+
+ipcMain.handle('create-note', async (event, noteData) => {
+    try {
+        const response = await axios.post(`${backendUrl}/notes`, noteData);
+        return response.data;
+    } catch (error) {
+        console.error('Failed to create note:', error.message);
+        return null;
+    }
+});
+
+ipcMain.handle('update-note', async (event, noteId, noteData) => {
+    try {
+        const response = await axios.put(`${backendUrl}/notes/${noteId}`, noteData);
+        return response.data;
+    } catch (error) {
+        console.error(`Failed to update note ${noteId}:`, error.message);
+        return null;
+    }
+});
+
+ipcMain.handle('soft-delete-note', async (event, noteId) => {
+    try {
+        await axios.delete(`${backendUrl}/notes/${noteId}`);
+        return true;
+    } catch (error) {
+        console.error(`Failed to delete note ${noteId}:`, error.message);
+        return false;
+    }
+});
+
+ipcMain.handle('restore-note', async (event, noteId) => {
+    try {
+        await axios.put(`${backendUrl}/notes/${noteId}/restore`);
+        return true;
+    } catch (error) {
+        console.error(`Failed to restore note ${noteId}:`, error.message);
+        return false;
+    }
+});
+
+ipcMain.handle('permanently-delete-note', async (event, noteId) => {
+    try {
+        await axios.delete(`${backendUrl}/notes/${noteId}/permanent`);
+        return true;
+    } catch (error) {
+        console.error(`Failed to permanently delete note ${noteId}:`, error.message);
+        return false;
+    }
+});
