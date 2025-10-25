@@ -2,10 +2,17 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- a basic CSP that allows scripts and styles from the same origin -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <title>The Journal</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <h1>Welcome to The Journal!</h1>
-    <p>Our Electron application window is now running.</p>
+    <h1>The Journal</h1>
+    <p>Check the developer console for API data.</p>
+
+    <!-- The defer attribute ensures the script runs after the document is parsed -->
+    <script defer src="renderer.js"></script>
   </body>
 </html>

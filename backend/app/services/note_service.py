@@ -80,13 +80,3 @@ async def restore_note(conn: AsyncSession, note_id: int) -> None:
 async def permanently_delete_note(conn: AsyncSession, note_id: int) -> None:
     await conn.execute(text("DELETE FROM notes WHERE id = :id"), {"id": note_id})
     await conn.commit()
-
-    async def restore_note(conn: AsyncSession, note_id: int):
-        await conn.execute(
-            text("UPDATE notes SET is_deleted = 0 WHERE id = :id"), {"id": note_id}
-        )
-        await conn.commit()
-
-    async def permanently_delete_note(conn: AsyncSession, note_id: int):
-        await conn.execute(text("DELETE FROM notes WHERE id = :id"), {"id": note_id})
-        await conn.commit()
