@@ -17,7 +17,7 @@ This is the FastAPI backend for The Journal.
 
 3. Run the development server:
 - First go to the root of `backend` directory with `cd backend`
-- Run the fastapi server in development mode using `uv run uvicorn app.main:app --reload`
+- Run the fastapi server in development mode using `uv run uvicorn app.server.main:app --reload`
 - This will hot reload new changes automatically
 
 ## Notes
