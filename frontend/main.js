@@ -16,7 +16,7 @@ const startPythonBackend = () => {
   // In development, we run the uvicorn command directly.
   // In production, we'll need to run a packaged executable.
   const command = 'uv';
-  const args = ['run', 'uvicorn', 'app.main:app', '--port', `${backendPort}`];
+  const args = ['run', 'uvicorn', 'app.server.main:app', '--port', `${backendPort}`];
 
   pythonProcess = spawn(command, args, {
     // The CWD must be the backend directory where pyproject.toml is
