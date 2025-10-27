@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     ## Local LLM
     OLLAMA_BASE_URL: str = "http://localhost:11434"
+    OLLAMA_MODEL_NAME: str = "ollama/qwen3:0.6b"
 
 
 settings = Settings()

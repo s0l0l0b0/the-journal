@@ -16,6 +16,8 @@ dependencies = [
     "pydantic-settings>=2.11.0",
     "sqlalchemy[asyncio]>=2.0.44",
     "litellm>=1.79.0",
+    "loguru>=0.7.3",
+    "psutil>=7.1.2",
 ]
 
 [build-system]
