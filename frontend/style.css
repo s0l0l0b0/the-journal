@@ -205,3 +205,51 @@ body {
 .action-btn.permanent-delete {
     background-color: #c93c3c;
 }
+
+
+/* --- Tab Bar Styles --- */
+#tab-bar {
+    display: flex;
+    background-color: var(--bg-color-dark);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0; /* Prevent the tab bar from shrinking */
+}
+
+.tab-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--bg-color-medium);
+    border-right: 1px solid var(--border-color);
+    cursor: pointer;
+    color: var(--text-color-secondary);
+    white-space: nowrap;
+}
+
+.tab-item.active {
+    background-color: var(--bg-color-dark);
+    color: var(--text-color-primary);
+}
+
+.tab-title {
+    max-width: 150px; /* Prevent long titles from pushing everything out */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tab-close-btn {
+    margin-left: 10px;
+    background: none;
+    border: none;
+    color: var(--text-color-secondary);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    line-height: 1;
+}
+
+.tab-close-btn:hover {
+    background-color: var(--bg-color-light);
+    color: var(--text-color-primary);
+}

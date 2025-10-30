@@ -2,7 +2,8 @@
 
 // --- State Management ---
 let allNotes = [];
-let currentNoteId = null;
+let openNoteIds = new Set();
+let activeNoteId = null;
 let isRecycleBinView = false;
 
 // --- DOM Element References ---
@@ -17,15 +18,17 @@ const welcomeMessage = document.getElementById('welcome-message');
 const recycleBinActionsContainer = document.getElementById('recycle-bin-actions-container');
 const restoreNoteBtn = document.getElementById('restore-note-btn');
 const permDeleteNoteBtn = document.getElementById('perm-delete-note-btn');
+const tabBar = document.getElementById('tab-bar');
 
 // --- Rendering Functions ---
 
-const renderNotesList = () => {
-    notesList.innerHTML = ''; // Clear the list
+// FIXED: Changed from 'const renderNotesList = () => {}' to 'function renderNotesList() {}'
+function renderNotesList() {
+    notesList.innerHTML = '';
     allNotes.forEach(note => {
         const noteItem = document.createElement('li');
         noteItem.className = 'note-item';
-        if (note.id === currentNoteId) {
+        if (note.id === activeNoteId) {
             noteItem.classList.add('selected');
         }
         noteItem.dataset.id = note.id;
@@ -35,38 +38,75 @@ const renderNotesList = () => {
             <div class="note-item-title">${note.title || 'Untitled Note'}</div>
             <div class="note-item-date">${date.toLocaleString()}</div>
         `;
-
-        // Allow clicking notes in both views now
-        noteItem.addEventListener('click', () => handleNoteClick(note.id));
+        // This call will now work correctly because handleNoteSelect is hoisted.
+        noteItem.addEventListener('click', () => handleNoteSelect(note.id));
         notesList.appendChild(noteItem);
     });
 };
 
-const renderMainContent = () => {
-    const note = allNotes.find(n => n.id === currentNoteId);
+// FIXED: Changed to function declaration
+function renderTabBar() {
+    tabBar.innerHTML = '';
+    openNoteIds.forEach(id => {
+        const note = allNotes.find(n => n.id === id);
+        if (!note) return;
 
-    // Hide everything first
+        const tab = document.createElement('div');
+        tab.className = 'tab-item';
+        if (id === activeNoteId) {
+            tab.classList.add('active');
+        }
+        tab.innerHTML = `
+            <span class="tab-title">${note.title || 'Untitled Note'}</span>
+            <button class="tab-close-btn">&times;</button>
+        `;
+
+        tab.querySelector('.tab-title').addEventListener('click', () => handleTabSelect(id));
+        tab.querySelector('.tab-close-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleTabClose(id);
+        });
+
+        tabBar.appendChild(tab);
+    });
+};
+
+// FIXED: Changed to function declaration
+function renderMainContent() {
     editorContainer.classList.add('hidden');
     recycleBinActionsContainer.classList.add('hidden');
     welcomeMessage.classList.add('hidden');
 
-    if (note) {
+    if (activeNoteId) {
         if (isRecycleBinView) {
             recycleBinActionsContainer.classList.remove('hidden');
         } else {
-            noteTitleInput.value = note.title;
-            noteContentInput.value = note.content;
-            editorContainer.classList.remove('hidden');
+            const note = allNotes.find(n => n.id === activeNoteId);
+            if (note) {
+                noteTitleInput.value = note.title;
+                noteContentInput.value = note.content;
+                editorContainer.classList.remove('hidden');
+            }
         }
     } else {
         welcomeMessage.classList.remove('hidden');
     }
 };
 
+// FIXED: Changed to function declaration
+function renderAll() {
+    renderNotesList();
+    renderTabBar();
+    renderMainContent();
+};
+
 // --- Data Loading ---
 
-const loadAndRenderNotes = async () => {
-    currentNoteId = null; // Deselect any note when switching views
+// FIXED: Changed to async function declaration
+async function loadAndRenderNotes() {
+    activeNoteId = null;
+    openNoteIds.clear();
+
     if (isRecycleBinView) {
         allNotes = await window.api.getDeletedNotes() || [];
         recycleBinBtn.textContent = 'Back to Notes';
@@ -76,74 +116,98 @@ const loadAndRenderNotes = async () => {
         recycleBinBtn.textContent = 'Recycle Bin';
         newNoteBtn.disabled = false;
     }
-    renderNotesList();
-    renderMainContent();
+    renderAll();
 };
 
 // --- Event Handlers ---
 
-const handleRecycleBinClick = () => {
+// FIXED: Changed to function declaration
+function handleNoteSelect(id) {
+    if (isRecycleBinView) {
+        activeNoteId = id;
+    } else {
+        openNoteIds.add(id);
+        activeNoteId = id;
+    }
+    renderAll();
+};
+
+// FIXED: Changed to function declaration
+function handleTabSelect(id) {
+    activeNoteId = id;
+    renderAll();
+};
+
+// FIXED: Changed to function declaration
+function handleTabClose(idToClose) {
+    openNoteIds.delete(idToClose);
+
+    if (activeNoteId === idToClose) {
+        const remainingIds = Array.from(openNoteIds);
+        activeNoteId = remainingIds.length > 0 ? remainingIds[remainingIds.length - 1] : null;
+    }
+
+    renderAll();
+};
+
+// FIXED: Changed to function declaration
+function handleRecycleBinClick() {
     isRecycleBinView = !isRecycleBinView;
     loadAndRenderNotes();
 };
 
-const handleNoteClick = (id) => {
-    currentNoteId = id;
-    renderNotesList(); // Re-render to show selection
-    renderMainContent();
-};
-
-const handleNewNote = async () => {
-    if (isRecycleBinView) {
-        isRecycleBinView = false;
-        await loadAndRenderNotes();
-    }
+// FIXED: Changed to async function declaration
+async function handleNewNote() {
     const newNote = await window.api.createNote({ title: 'New Note', content: '' });
     if (newNote) {
         allNotes.unshift(newNote);
-        currentNoteId = newNote.id;
-        renderNotesList();
-        renderMainContent();
+        openNoteIds.add(newNote.id);
+        activeNoteId = newNote.id;
+        renderAll();
     }
 };
 
-const handleDeleteNote = async () => {
-    if (!currentNoteId) return;
-    const success = await window.api.softDeleteNote(currentNoteId);
+// FIXED: Changed to async function declaration
+async function handleDeleteNote() {
+    if (!activeNoteId) return;
+    const idToDelete = activeNoteId;
+    const success = await window.api.softDeleteNote(idToDelete);
     if (success) {
-        loadAndRenderNotes();
+        handleTabClose(idToDelete);
+        allNotes = allNotes.filter(n => n.id !== idToDelete);
+        renderAll();
     }
 };
 
-const handleRestoreNote = async () => {
-    if (!currentNoteId) return;
-    await window.api.restoreNote(currentNoteId);
-    // After restoring, switch back to the main notes view to see the restored note
+// FIXED: Changed to async function declaration
+async function handleRestoreNote() {
+    if (!activeNoteId) return;
+    await window.api.restoreNote(activeNoteId);
     isRecycleBinView = false;
     loadAndRenderNotes();
 };
 
-const handlePermanentDelete = async () => {
-    if (!currentNoteId) return;
-    await window.api.permanentlyDeleteNote(currentNoteId);
-    // After deleting, just refresh the current (recycle bin) view
+// FIXED: Changed to async function declaration
+async function handlePermanentDelete() {
+    if (!activeNoteId) return;
+    await window.api.permanentlyDeleteNote(activeNoteId);
     loadAndRenderNotes();
 };
 
-// Auto-save functionality
+// Auto-save functionality (can remain as a const as it's not called before it's defined)
 let saveTimeout;
 const handleNoteUpdate = () => {
-    if (!currentNoteId || isRecycleBinView) return;
+    if (!activeNoteId || isRecycleBinView) return;
 
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
         const noteData = { title: noteTitleInput.value, content: noteContentInput.value };
-        const updatedNote = await window.api.updateNote(currentNoteId, noteData);
+        const updatedNote = await window.api.updateNote(activeNoteId, noteData);
         if (updatedNote) {
-            const index = allNotes.findIndex(n => n.id === currentNoteId);
+            const index = allNotes.findIndex(n => n.id === activeNoteId);
             if (index !== -1) {
                 allNotes[index] = updatedNote;
-                renderNotesList();
+                renderAll();
             }
         }
     }, 500);
@@ -151,14 +215,14 @@ const handleNoteUpdate = () => {
 
 // --- Initialization ---
 
-const init = () => {
+function init() {
     newNoteBtn.addEventListener('click', handleNewNote);
     deleteNoteBtn.addEventListener('click', handleDeleteNote);
     recycleBinBtn.addEventListener('click', handleRecycleBinClick);
     noteTitleInput.addEventListener('input', handleNoteUpdate);
     noteContentInput.addEventListener('input', handleNoteUpdate);
-    restoreNoteBtn.addEventListener('click', handleRestoreNote); // ADDED
-    permDeleteNoteBtn.addEventListener('click', handlePermanentDelete); // ADDED
+    restoreNoteBtn.addEventListener('click', handleRestoreNote);
+    permDeleteNoteBtn.addEventListener('click', handlePermanentDelete);
 
     loadAndRenderNotes();
 };
