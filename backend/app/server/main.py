@@ -2,19 +2,31 @@
 
 from contextlib import asynccontextmanager
 
+from core.database import create_tables
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.core.database import create_tables
-from app.routers import notes  # ABSOLUTE import
+from locallm.utils import ollama
+from loguru import logger
+from routers import llm, notes
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Starting up...")
     await create_tables()
+    global ollama_process
+
+    if await ollama.is_ollama_running():
+        logger.info("Ollama is already running.")
+        ollama_process = None
+    else:
+        ollama_process = await ollama.start_ollama()
+
     yield
+
     print("Shutting down...")
+    if ollama_process:
+        await ollama.stop_ollama(ollama_process)
 
 
 app = FastAPI(
@@ -33,6 +45,7 @@ app.add_middleware(
 )
 
 app.include_router(notes.router)
+app.include_router(llm.router)
 
 
 @app.get("/", tags=["Root"])
