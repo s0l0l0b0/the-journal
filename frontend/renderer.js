@@ -19,6 +19,9 @@ const recycleBinActionsContainer = document.getElementById('recycle-bin-actions-
 const restoreNoteBtn = document.getElementById('restore-note-btn');
 const permDeleteNoteBtn = document.getElementById('perm-delete-note-btn');
 const tabBar = document.getElementById('tab-bar');
+const appContainer = document.getElementById('app-container'); // NEW
+const sidebar = document.getElementById('sidebar'); // NEW
+const sidebarTriggerZone = document.getElementById('sidebar-trigger-zone'); // NEW
 
 // --- Rendering Functions ---
 
@@ -224,7 +227,16 @@ function init() {
     restoreNoteBtn.addEventListener('click', handleRestoreNote);
     permDeleteNoteBtn.addEventListener('click', handlePermanentDelete);
 
-    loadAndRenderNotes();
+    // --- NEW: Sidebar slide functionality ---
+    sidebarTriggerZone.addEventListener('mouseenter', () => {sidebar.classList.add('is-open');});
+    sidebar.addEventListener('mouseleave', () => {sidebar.classList.remove('is-open');});
+
+    // UPDATED: Instead of calling loadAndRenderNotes() directly,
+    // we now wait for the 'backend-ready' signal from the main process.
+    window.api.onBackendReady(() => {
+        console.log('Received backend-ready signal. Loading notes...');
+        loadAndRenderNotes();
+    });
 };
 
 init();

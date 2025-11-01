@@ -35,12 +35,17 @@ body {
 
 #sidebar {
     width: 280px;
+    /* NEW: Start with the sidebar mostly hidden off-screen */
+    margin-left: -270px;
     background-color: var(--bg-color-medium);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     height: 100%;
-    transition: margin-left 0.3s ease; /* For sliding effect later */
+    /* UPDATED: Ensure the transition property is on margin-left */
+    transition: margin-left 0.25s ease-in-out;
+    /* NEW: Prevent the sidebar from being squeezed by other elements */
+    flex-shrink: 0;
 }
 
 #main-content {
@@ -252,4 +257,44 @@ body {
 .tab-close-btn:hover {
     background-color: var(--bg-color-light);
     color: var(--text-color-primary);
+}
+
+/* --- Sliding Sidebar Logic --- */
+
+/* NEW: This class will be added by JavaScript to show the sidebar */
+#sidebar.is-open {
+    margin-left: 0;
+}
+
+/* NEW: Style for the invisible trigger zone */
+#sidebar-trigger-zone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 20px; /* How far from the edge the mouse must be to trigger */
+    height: 100vh;
+    background-color: transparent; /* It's invisible */
+    z-index: 999; /* Ensures it's on top of other content */
+}
+
+/* --- Custom Scrollbar Styling --- */
+/* NEW: Target the scrollbar itself */
+::-webkit-scrollbar {
+    width: 8px; /* Make it thinner */
+}
+
+/* NEW: Style the track (the background of the scrollbar) */
+::-webkit-scrollbar-track {
+    background: var(--bg-color-medium); /* Match the sidebar background */
+}
+
+/* NEW: Style the thumb (the part you drag) */
+::-webkit-scrollbar-thumb {
+    background: var(--bg-color-light); /* A slightly lighter color */
+    border-radius: 4px;
+}
+
+/* NEW: Style the thumb on hover for better interactivity */
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color);
 }
