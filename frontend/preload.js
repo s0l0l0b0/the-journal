@@ -13,4 +13,6 @@ contextBridge.exposeInMainWorld('api', {
   softDeleteNote: (noteId) => ipcRenderer.invoke('soft-delete-note', noteId),
   restoreNote: (noteId) => ipcRenderer.invoke('restore-note', noteId),
   permanentlyDeleteNote: (noteId) => ipcRenderer.invoke('permanently-delete-note', noteId),
+  // NEW: Expose an event listener for the backend-ready signal.
+  onBackendReady: (callback) => ipcRenderer.on('backend-ready', callback)
 });

@@ -10,6 +10,8 @@ const backendPort = 8000;
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 
 let pythonProcess = null;
+// UPDATED: We need a reference to the main window to send messages to it.
+let mainWindow = null;
 
 // Function to start the Python backend
 const startPythonBackend = () => {
@@ -39,7 +41,7 @@ const startPythonBackend = () => {
 };
 
 const createWindow = () => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -59,10 +61,29 @@ const createWindow = () => {
   }
 };
 
+// NEW: This function will ping the backend until it's ready.
+const checkBackendReady = () => {
+    console.log('Pinging backend...');
+    axios.get(backendUrl)
+        .then(() => {
+            console.log('Backend is ready. Notifying renderer.');
+            // NEW: Once the backend responds, send a message to the renderer process.
+            mainWindow.webContents.send('backend-ready');
+        })
+        .catch(() => {
+            console.log('Backend not ready, trying again in 250ms.');
+            // NEW: If it fails, wait and try again.
+            setTimeout(checkBackendReady, 250);
+        });
+};
+
 app.whenReady().then(() => {
   console.log('App is ready, starting backend...');
   startPythonBackend();
   createWindow();
+
+  // NEW: Start pinging the backend after creating the window.
+  checkBackendReady();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
