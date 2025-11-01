@@ -33,3 +33,6 @@ Thumbs.db
 
 # Database
 *.db
+
+# UV Lock
+**/uv.lock
