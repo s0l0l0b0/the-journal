@@ -1,6 +1,7 @@
 from typing import Optional
 
-from pydantic_settings import BaseSettings
+import litellm
+from pydantic_settings import BaseSettings, SettingsError
 
 
 class LLMProviderSettings(BaseSettings):
@@ -34,11 +35,14 @@ class Settings(BaseSettings):
     @property
     def LLM_PROVIDER_SETTINGS(self) -> LLMProviderSettings:
         if not self.LLM_MODEL_NAME:
-            raise ValueError("LLM_MODEL_NAME must be set.")
+            raise SettingsError("LLM_MODEL_NAME must be set.")
+
+        if self.LLM_MODEL_NAME not in litellm.model_list_set:
+            raise SettingsError(f"Model {self.LLM_MODEL_NAME} is not supported.")
 
         if self.IS_OLLAMA_MODEL:
             if not self.OLLAMA_BASE_URL:
-                raise ValueError("OLLAMA_BASE_URL should be set for Ollama models.")
+                raise SettingsError("OLLAMA_BASE_URL should be set for Ollama models.")
 
             return LLMProviderSettings(
                 model=self.LLM_MODEL_NAME,
@@ -48,7 +52,7 @@ class Settings(BaseSettings):
 
         else:
             if not self.LLM_API_KEY:
-                raise ValueError("LLM_API_KEY must be set for non-ollama models.")
+                raise SettingsError("LLM_API_KEY must be set for non-ollama models.")
 
             return LLMProviderSettings(
                 model=self.LLM_MODEL_NAME,
