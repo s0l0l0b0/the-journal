@@ -1,11 +1,11 @@
 from core.config import settings
-from litellm import ModelResponse, completion
+from litellm import ModelResponse, acompletion
 from loguru import logger
 
 
 class LocalLMSummarizer:
-    def summarize(self, text: str) -> str:
-        response: ModelResponse = completion(
+    async def summarize(self, text: str) -> str:
+        response: ModelResponse = await acompletion(
             model=settings.LLM_PROVIDER_SETTINGS.model,
             messages=[
                 {
