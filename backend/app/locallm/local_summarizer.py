@@ -1,11 +1,12 @@
 from core.config import settings
 from litellm import ModelResponse, completion
+from loguru import logger
 
 
 class LocalLMSummarizer:
     def summarize(self, text: str) -> str:
         response: ModelResponse = completion(
-            model=settings.OLLAMA_MODEL_NAME,
+            model=settings.LLM_PROVIDER_SETTINGS.model,
             messages=[
                 {
                     "role": "system",
@@ -13,10 +14,15 @@ class LocalLMSummarizer:
                 },
                 {"role": "user", "content": text},
             ],
-            api_base=settings.OLLAMA_BASE_URL,
+            api_key=settings.LLM_PROVIDER_SETTINGS.api_key,
+            api_base=settings.LLM_PROVIDER_SETTINGS.api_base,
         )
 
         if response.choices is None or len(response.choices) == 0:
             raise ValueError("No response from the model.")
+
+        logger.info(
+            f"Model used for Summarizer: {response.model} | Token usage: {response.usage}"
+        )
 
         return response.choices[0].message.content
