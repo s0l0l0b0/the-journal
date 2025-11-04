@@ -13,5 +13,5 @@ async def summarize_text(
     Endpoint to summarize text using the local LLM summarizer.
     """
 
-    summary = summarizer.summarize(request.text)
+    summary = await summarizer.summarize(request.text)
     return SummarizerResponse(summary=summary)

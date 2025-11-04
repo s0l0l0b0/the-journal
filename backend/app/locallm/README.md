@@ -11,4 +11,4 @@ This directory will have local language model implementations
 - [x] Integrate with `LiteLM` and `ollama` to create a simple summarizer
 - [x] Spawn ollama as subprocess `ollama serve` from fastapi lifespan to start with backend application
 - [ ] After ollama serve start with subprocess check if our requried model qwen3:0.6b is preset or not in local ollama if not pull it
-- [ ] Cloud LLM Provider integration (use can choose his own provider api key and model to use instead of default localLM) 
+- [x] Cloud LLM Provider integration (use can choose his own provider api key and model to use instead of default localLM) 
