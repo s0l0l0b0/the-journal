@@ -12,6 +12,12 @@ All git operations run asynchronously using `asyncio.create_subprocess_exec`
 - File change statistics
 - Uncommitted changes tracking
 - Formatted in beautiful Markdown
+- Shows detailed uncommitted changes with diffs
+"Show me my uncommitted changes"
+"What am I currently working on?"
+- Preview what will be in the next commit (staged only)
+"Preview what I'm about to commit"
+"Show me staged changes"
 
 ### 3. **Smart Tools**
 - `generate_work_note` - Main tool for daily summaries
