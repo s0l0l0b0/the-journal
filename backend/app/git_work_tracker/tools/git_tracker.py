@@ -4,6 +4,7 @@ Async Git tracking tools for generating work notes
 """
 
 import asyncio
+import httpx
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -427,6 +428,53 @@ async def format_work_note(
 
 def register_git_tools(mcp: FastMCP):
     """Register git tracking tools with the MCP server."""
+
+    @mcp.tool()
+    async def save_journal_note(
+        ctx: Context,
+        title: str,
+        content: str,
+        api_url: str = "http://127.0.0.1:8000"
+    ) -> str:
+        """
+        Save a generated note, summary, or report to the Journal database.
+        
+        Use this tool when you want to persist the output of your analysis or 
+        summarization into the user's permanent journal.
+        
+        Args:
+            title: The title of the note (e.g., "Work Summary - Dec 8")
+            content: The markdown content of the note
+            api_url: The URL of the Journal API (defaults to local server)
+        """
+        await ctx.info(f"💾 Saving note '{title}' to journal...")
+        
+        async with httpx.AsyncClient() as client:
+            try:
+                # We try to hit the backend API
+                response = await client.post(
+                    f"{api_url}/notes",
+                    json={"title": title, "content": content},
+                    timeout=10.0
+                )
+                
+                if response.status_code == 201:
+                    data = response.json()
+                    note_id = data.get("id", "unknown")
+                    await ctx.info(f"✅ Note saved successfully (ID: {note_id})")
+                    return f"Successfully saved note to journal with ID: {note_id}"
+                else:
+                    error_msg = f"API returned error {response.status_code}: {response.text}"
+                    await ctx.error(error_msg)
+                    return f"Failed to save note. {error_msg}"
+                    
+            except httpx.ConnectError:
+                msg = "Could not connect to the Journal API. Is the main application running on port 8000?"
+                await ctx.error(msg)
+                return f"Error: {msg}"
+            except Exception as e:
+                await ctx.error(f"Unexpected error: {str(e)}")
+                return f"Error saving note: {str(e)}"
     
     @mcp.tool()
     async def generate_work_note(
@@ -605,3 +653,7 @@ def register_git_tools(mcp: FastMCP):
             "status": status,
             "has_uncommitted_changes": bool(status.strip())
         }
+
+    
+
+
