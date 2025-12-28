@@ -301,38 +301,96 @@ body {
 
 
 
-/* --- Editor.js Dark Theme Overrides --- */
+
+/* --- Editor.js "Card" Theme Overrides --- */
 
 #editorjs {
     color: var(--text-color-primary);
     font-family: var(--font-family);
-    padding: 20px 0;
+
+    flex-grow: 1;
+    overflow-y: auto; /* Enable vertical scrolling */
+    height: 0;
     
-    /* NEW: Add left padding to push content away from the sidebar trigger zone */
-    padding-left: 80px; 
-    
-    /* NEW: Ensure it fits within the container */
+    /* Space for the sidebar trigger + general breathing room */
+    padding: 40px 40px 40px 100px; 
     max-width: 100%;
     box-sizing: border-box;
 }
 
-/* Override standard text colors */
-.ce-block__content, 
+/* 
+   THE MAGIC: Turn every content block into a "Card" 
+   Targeting .ce-block__content styles the actual text/image area
+*/
+.ce-block__content {
+    background-color: var(--bg-color-medium); /* Distinct card background */
+    padding: 20px 30px; /* Internal spacing inside the card */
+    border-radius: 12px; /* Rounded corners */
+    border: 1px solid #4a4a4a;  /* Subtle border */
+    
+    /* Spacing between cards */
+    margin-top: 16px; 
+    margin-bottom: 16px;
+    
+    /* Make cards wide but readable */
+    max-width: 100% !important; 
+    
+    /* Animation for smooth hover effects */
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Hover Effect: Lift the card slightly when mouse is over it */
+.ce-block__content:hover {
+    border-color: var(--text-color-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    background-color: #333; /* Slightly lighter on hover */
+}
+
+/* Focused Effect: When you are typing in a block, highlight it */
+.ce-block--focused .ce-block__content {
+    border-color: var(--accent-color);
+    background-color: var(--bg-color-light);
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2); /* Blue glow */
+}
+
+/* --- Typography Fixes inside Cards --- */
+
+/* Reset margins for headers so they fit nicely in the card */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    color: var(--text-color-primary);
+}
+
+/* Text colors */
 .ce-paragraph {
     color: var(--text-color-primary);
+    line-height: 1.6;
 }
 
-/* Headers */
-h1, h2, h3, h4, h5, h6 {
+/* Lists */
+.cdx-list__item {
     color: var(--text-color-primary);
 }
 
-/* Toolbar & Popovers (The trickiest part) */
-.ce-toolbar__content, 
-.ce-block__content {
-    max-width: 90% !important; /* Use more width than default */
+/* Code Blocks: Make them look like a "screen" inside the card */
+.ce-code__textarea {
+    background-color: #111 !important; /* Darker than the card */
+    color: #0f0 !important; /* Matrix green text */
+    border: 1px solid #444 !important;
+    border-radius: 6px;
+    margin-top: 10px;
 }
 
+/* --- Toolbar & Popover Adjustments --- */
+
+/* Ensure the toolbar (plus button) sits correctly next to the cards */
+.ce-toolbar__content {
+    max-width: 100% !important;
+}
+
+/* Style the popup menus (when you click the plus button) */
 .ce-popover, 
 .ce-toolbar__plus, 
 .ce-toolbar__settings-btn {
@@ -350,6 +408,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: none !important;
 }
 
+/* Inline Toolbar (Bold/Italic menu) */
 .ce-inline-toolbar {
     background-color: var(--bg-color-light) !important;
     border: 1px solid var(--border-color);
@@ -360,24 +419,7 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--accent-color) !important;
 }
 
-.ce-conversion-toolbar {
-    background-color: var(--bg-color-light) !important;
-    border: 1px solid var(--border-color);
-}
-
-/* Lists */
-.cdx-list__item {
-    color: var(--text-color-primary);
-}
-
-/* Code Blocks */
-.ce-code__textarea {
-    background-color: #111 !important;
-    color: #0f0 !important; /* Matrix green style for code */
-    border: 1px solid var(--border-color) !important;
-}
-
-/* Selection color */
+/* Selection Color */
 ::selection {
     background-color: var(--accent-color);
     color: white;

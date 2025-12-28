@@ -260,6 +260,24 @@ async function init() {
         },
     });
 
+    // --- NEW: Custom Key Binding for Cmd+Enter (Soft Break) ---
+document.getElementById('editorjs').addEventListener('keydown', (e) => {
+        // Check for Cmd+Enter (Mac) or Ctrl+Enter (Windows)
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+            // Stop Editor.js from seeing this event
+            e.preventDefault();
+            e.stopPropagation();
+
+            // execute the native browser command for a soft break
+            // This handles the cursor position and <br> insertion perfectly
+            document.execCommand('insertLineBreak');
+
+            // Trigger auto-save
+            handleNoteUpdate();
+        }
+    }, true); // Capture phase is important
+
+
     try {
         await editor.isReady;
         console.log('Editor.js is ready');
