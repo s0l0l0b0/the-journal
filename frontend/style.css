@@ -298,3 +298,87 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--border-color);
 }
+
+
+
+/* --- Editor.js Dark Theme Overrides --- */
+
+#editorjs {
+    color: var(--text-color-primary);
+    font-family: var(--font-family);
+    padding: 20px 0;
+    
+    /* NEW: Add left padding to push content away from the sidebar trigger zone */
+    padding-left: 80px; 
+    
+    /* NEW: Ensure it fits within the container */
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Override standard text colors */
+.ce-block__content, 
+.ce-paragraph {
+    color: var(--text-color-primary);
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color-primary);
+}
+
+/* Toolbar & Popovers (The trickiest part) */
+.ce-toolbar__content, 
+.ce-block__content {
+    max-width: 90% !important; /* Use more width than default */
+}
+
+.ce-popover, 
+.ce-toolbar__plus, 
+.ce-toolbar__settings-btn {
+    background-color: var(--bg-color-light) !important;
+    color: var(--text-color-primary) !important;
+    border: 1px solid var(--border-color);
+}
+
+.ce-popover__item:hover {
+    background-color: var(--accent-color) !important;
+}
+
+.ce-popover__item-icon {
+    background-color: var(--bg-color-medium) !important;
+    box-shadow: none !important;
+}
+
+.ce-inline-toolbar {
+    background-color: var(--bg-color-light) !important;
+    border: 1px solid var(--border-color);
+    color: var(--text-color-primary) !important;
+}
+
+.ce-inline-tool:hover {
+    background-color: var(--accent-color) !important;
+}
+
+.ce-conversion-toolbar {
+    background-color: var(--bg-color-light) !important;
+    border: 1px solid var(--border-color);
+}
+
+/* Lists */
+.cdx-list__item {
+    color: var(--text-color-primary);
+}
+
+/* Code Blocks */
+.ce-code__textarea {
+    background-color: #111 !important;
+    color: #0f0 !important; /* Matrix green style for code */
+    border: 1px solid var(--border-color) !important;
+}
+
+/* Selection color */
+::selection {
+    background-color: var(--accent-color);
+    color: white;
+}

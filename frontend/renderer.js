@@ -5,12 +5,12 @@ let allNotes = [];
 let openNoteIds = new Set();
 let activeNoteId = null;
 let isRecycleBinView = false;
+let editor; // Global editor instance
 
 // --- DOM Element References ---
 const notesList = document.getElementById('notes-list');
 const editorContainer = document.getElementById('editor-container');
 const noteTitleInput = document.getElementById('note-title');
-const noteContentInput = document.getElementById('note-content');
 const newNoteBtn = document.getElementById('new-note-btn');
 const deleteNoteBtn = document.getElementById('delete-note-btn');
 const recycleBinBtn = document.getElementById('recycle-bin-btn');
@@ -19,13 +19,11 @@ const recycleBinActionsContainer = document.getElementById('recycle-bin-actions-
 const restoreNoteBtn = document.getElementById('restore-note-btn');
 const permDeleteNoteBtn = document.getElementById('perm-delete-note-btn');
 const tabBar = document.getElementById('tab-bar');
-const appContainer = document.getElementById('app-container'); // NEW
-const sidebar = document.getElementById('sidebar'); // NEW
-const sidebarTriggerZone = document.getElementById('sidebar-trigger-zone'); // NEW
+const sidebar = document.getElementById('sidebar');
+const sidebarTriggerZone = document.getElementById('sidebar-trigger-zone');
 
 // --- Rendering Functions ---
 
-// FIXED: Changed from 'const renderNotesList = () => {}' to 'function renderNotesList() {}'
 function renderNotesList() {
     notesList.innerHTML = '';
     allNotes.forEach(note => {
@@ -41,13 +39,11 @@ function renderNotesList() {
             <div class="note-item-title">${note.title || 'Untitled Note'}</div>
             <div class="note-item-date">${date.toLocaleString()}</div>
         `;
-        // This call will now work correctly because handleNoteSelect is hoisted.
         noteItem.addEventListener('click', () => handleNoteSelect(note.id));
         notesList.appendChild(noteItem);
     });
 };
 
-// FIXED: Changed to function declaration
 function renderTabBar() {
     tabBar.innerHTML = '';
     openNoteIds.forEach(id => {
@@ -74,7 +70,8 @@ function renderTabBar() {
     });
 };
 
-// FIXED: Changed to function declaration
+// In frontend/renderer.js
+
 function renderMainContent() {
     editorContainer.classList.add('hidden');
     recycleBinActionsContainer.classList.add('hidden');
@@ -87,8 +84,34 @@ function renderMainContent() {
             const note = allNotes.find(n => n.id === activeNoteId);
             if (note) {
                 noteTitleInput.value = note.title;
-                noteContentInput.value = note.content;
                 editorContainer.classList.remove('hidden');
+
+                // UPDATED: Robust loading
+                if (editor && note.content) {
+                    try {
+                        const data = JSON.parse(note.content);
+                        // Check if it looks like valid EditorJS data
+                        if (data.blocks && Array.isArray(data.blocks)) {
+                            editor.render(data);
+                        } else {
+                            throw new Error("Invalid structure");
+                        }
+                    } catch (e) {
+                        // Fallback: Create a VALID EditorJS object structure
+                        editor.render({
+                            time: Date.now(),
+                            blocks: [
+                                {
+                                    type: "paragraph",
+                                    data: { text: note.content }
+                                }
+                            ],
+                            version: "2.29.0" // Mock version
+                        });
+                    }
+                } else if (editor) {
+                    editor.clear();
+                }
             }
         }
     } else {
@@ -96,7 +119,6 @@ function renderMainContent() {
     }
 };
 
-// FIXED: Changed to function declaration
 function renderAll() {
     renderNotesList();
     renderTabBar();
@@ -105,7 +127,6 @@ function renderAll() {
 
 // --- Data Loading ---
 
-// FIXED: Changed to async function declaration
 async function loadAndRenderNotes() {
     activeNoteId = null;
     openNoteIds.clear();
@@ -124,7 +145,6 @@ async function loadAndRenderNotes() {
 
 // --- Event Handlers ---
 
-// FIXED: Changed to function declaration
 function handleNoteSelect(id) {
     if (isRecycleBinView) {
         activeNoteId = id;
@@ -135,31 +155,25 @@ function handleNoteSelect(id) {
     renderAll();
 };
 
-// FIXED: Changed to function declaration
 function handleTabSelect(id) {
     activeNoteId = id;
     renderAll();
 };
 
-// FIXED: Changed to function declaration
 function handleTabClose(idToClose) {
     openNoteIds.delete(idToClose);
-
     if (activeNoteId === idToClose) {
         const remainingIds = Array.from(openNoteIds);
         activeNoteId = remainingIds.length > 0 ? remainingIds[remainingIds.length - 1] : null;
     }
-
     renderAll();
 };
 
-// FIXED: Changed to function declaration
 function handleRecycleBinClick() {
     isRecycleBinView = !isRecycleBinView;
     loadAndRenderNotes();
 };
 
-// FIXED: Changed to async function declaration
 async function handleNewNote() {
     const newNote = await window.api.createNote({ title: 'New Note', content: '' });
     if (newNote) {
@@ -170,7 +184,6 @@ async function handleNewNote() {
     }
 };
 
-// FIXED: Changed to async function declaration
 async function handleDeleteNote() {
     if (!activeNoteId) return;
     const idToDelete = activeNoteId;
@@ -182,7 +195,6 @@ async function handleDeleteNote() {
     }
 };
 
-// FIXED: Changed to async function declaration
 async function handleRestoreNote() {
     if (!activeNoteId) return;
     await window.api.restoreNote(activeNoteId);
@@ -190,27 +202,34 @@ async function handleRestoreNote() {
     loadAndRenderNotes();
 };
 
-// FIXED: Changed to async function declaration
 async function handlePermanentDelete() {
     if (!activeNoteId) return;
     await window.api.permanentlyDeleteNote(activeNoteId);
     loadAndRenderNotes();
 };
 
-// Auto-save functionality (can remain as a const as it's not called before it's defined)
+// Auto-save functionality
 let saveTimeout;
 const handleNoteUpdate = () => {
     if (!activeNoteId || isRecycleBinView) return;
 
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
-        const noteData = { title: noteTitleInput.value, content: noteContentInput.value };
+        const outputData = await editor.save();
+        const contentString = JSON.stringify(outputData);
+        
+        const noteData = { 
+            title: noteTitleInput.value, 
+            content: contentString 
+        };
+        
         const updatedNote = await window.api.updateNote(activeNoteId, noteData);
         if (updatedNote) {
             const index = allNotes.findIndex(n => n.id === activeNoteId);
             if (index !== -1) {
                 allNotes[index] = updatedNote;
-                renderAll();
+                renderNotesList();
+                renderTabBar();
             }
         }
     }, 500);
@@ -218,25 +237,57 @@ const handleNoteUpdate = () => {
 
 // --- Initialization ---
 
-function init() {
+async function init() {
+    // FIX: Safely determine the correct global variable names for plugins
+    // Different versions export different names (e.g. List vs EditorjsList)
+    const HeaderTool = window.Header;
+    const ListTool = window.List || window.EditorjsList; // Check both names
+    const CodeTool = window.CodeTool || window.Code;     // Check both names
+
+    if (!ListTool) console.error("List plugin not found in window object");
+    if (!CodeTool) console.error("Code plugin not found in window object");
+
+    editor = new EditorJS({
+        holder: 'editorjs', // Matches the ID in index.html
+        placeholder: 'Let\'s write an awesome story! Type / to open menu...',
+        tools: {
+            header: HeaderTool,
+            list: ListTool,
+            code: CodeTool
+        },
+        onChange: () => {
+            handleNoteUpdate();
+        },
+    });
+
+    try {
+        await editor.isReady;
+        console.log('Editor.js is ready');
+    } catch (reason) {
+        console.error('Editor.js initialization failed', reason);
+    }
+
     newNoteBtn.addEventListener('click', handleNewNote);
     deleteNoteBtn.addEventListener('click', handleDeleteNote);
     recycleBinBtn.addEventListener('click', handleRecycleBinClick);
     noteTitleInput.addEventListener('input', handleNoteUpdate);
-    noteContentInput.addEventListener('input', handleNoteUpdate);
+    
     restoreNoteBtn.addEventListener('click', handleRestoreNote);
     permDeleteNoteBtn.addEventListener('click', handlePermanentDelete);
+    
+    if (sidebar && sidebarTriggerZone) {
+        sidebarTriggerZone.addEventListener('mouseenter', () => sidebar.classList.add('is-open'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('is-open'));
+    }
 
-    // --- NEW: Sidebar slide functionality ---
-    sidebarTriggerZone.addEventListener('mouseenter', () => {sidebar.classList.add('is-open');});
-    sidebar.addEventListener('mouseleave', () => {sidebar.classList.remove('is-open');});
-
-    // UPDATED: Instead of calling loadAndRenderNotes() directly,
-    // we now wait for the 'backend-ready' signal from the main process.
-    window.api.onBackendReady(() => {
-        console.log('Received backend-ready signal. Loading notes...');
+    const ready = await window.api.isBackendReady();
+    if (ready) {
         loadAndRenderNotes();
-    });
+    } else {
+        window.api.onBackendReady(() => {
+            loadAndRenderNotes();
+        });
+    }
 };
 
 init();

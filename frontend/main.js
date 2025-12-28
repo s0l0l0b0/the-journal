@@ -10,8 +10,9 @@ const backendPort = 8000;
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 
 let pythonProcess = null;
-// UPDATED: We need a reference to the main window to send messages to it.
 let mainWindow = null;
+// NEW: Track backend state
+let isBackendReady = false; 
 
 // Function to start the Python backend
 const startPythonBackend = () => {
@@ -61,18 +62,20 @@ const createWindow = () => {
   }
 };
 
-// NEW: This function will ping the backend until it's ready.
+// This function will ping the backend until it's ready.
 const checkBackendReady = () => {
     console.log('Pinging backend...');
     axios.get(backendUrl)
         .then(() => {
             console.log('Backend is ready. Notifying renderer.');
-            // NEW: Once the backend responds, send a message to the renderer process.
-            mainWindow.webContents.send('backend-ready');
+            // UPDATED: Mark backend as ready so new handlers can check this status
+            isBackendReady = true; 
+            if (mainWindow) {
+                mainWindow.webContents.send('backend-ready');
+            }
         })
         .catch(() => {
             console.log('Backend not ready, trying again in 250ms.');
-            // NEW: If it fails, wait and try again.
             setTimeout(checkBackendReady, 250);
         });
 };
@@ -82,7 +85,6 @@ app.whenReady().then(() => {
   startPythonBackend();
   createWindow();
 
-  // NEW: Start pinging the backend after creating the window.
   checkBackendReady();
 
   app.on('activate', () => {
@@ -108,6 +110,11 @@ app.on('window-all-closed', () => {
 });
 
 // --- IPC Handlers: Main process listens for events from the Renderer ---
+
+// NEW: This is the handler that was missing and causing your error
+ipcMain.handle('is-backend-ready', () => {
+    return isBackendReady;
+});
 
 ipcMain.handle('get-notes', async () => {
   try {
