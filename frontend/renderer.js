@@ -22,6 +22,12 @@ const tabBar = document.getElementById('tab-bar');
 const sidebar = document.getElementById('sidebar');
 const sidebarTriggerZone = document.getElementById('sidebar-trigger-zone');
 
+// MCP Modal elements
+const mcpModalOverlay = document.getElementById('mcp-modal-overlay');
+const mcpModalClose = document.getElementById('mcp-modal-close');
+const mcpModalOkBtn = document.getElementById('mcp-modal-ok-btn');
+const mcpDontShowAgain = document.getElementById('mcp-dont-show-again');
+
 // --- Rendering Functions ---
 
 function renderNotesList() {
@@ -235,6 +241,31 @@ const handleNoteUpdate = () => {
     }, 500);
 };
 
+// --- MCP Modal Functions ---
+
+function showMcpIntegrationModal() {
+    // Check if user has selected "Don't show again"
+    const dontShow = localStorage.getItem('mcp-dont-show-modal');
+    if (dontShow === 'true') {
+        return;
+    }
+
+    if (mcpModalOverlay) {
+        mcpModalOverlay.classList.remove('hidden');
+    }
+}
+
+function hideMcpIntegrationModal() {
+    if (mcpModalOverlay) {
+        mcpModalOverlay.classList.add('hidden');
+        
+        // Save preference if checkbox is checked
+        if (mcpDontShowAgain && mcpDontShowAgain.checked) {
+            localStorage.setItem('mcp-dont-show-modal', 'true');
+        }
+    }
+}
+
 // --- Initialization ---
 
 async function init() {
@@ -306,6 +337,27 @@ document.getElementById('editorjs').addEventListener('keydown', (e) => {
             loadAndRenderNotes();
         });
     }
+
+    // MCP Server modal event listeners
+    if (mcpModalClose) {
+        mcpModalClose.addEventListener('click', hideMcpIntegrationModal);
+    }
+    if (mcpModalOkBtn) {
+        mcpModalOkBtn.addEventListener('click', hideMcpIntegrationModal);
+    }
+    // Close modal when clicking overlay
+    if (mcpModalOverlay) {
+        mcpModalOverlay.addEventListener('click', (e) => {
+            if (e.target === mcpModalOverlay) {
+                hideMcpIntegrationModal();
+            }
+        });
+    }
+
+    // Listen for MCP server started event
+    window.api.onMcpServerStarted(() => {
+        showMcpIntegrationModal();
+    });
 };
 
 init();

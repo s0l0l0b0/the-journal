@@ -16,5 +16,12 @@ contextBridge.exposeInMainWorld('api', {
 
   // Check Backend Status (CRITICAL FOR FIXING RACE CONDITION)
   isBackendReady: () => ipcRenderer.invoke('is-backend-ready'),
-  onBackendReady: (callback) => ipcRenderer.on('backend-ready', callback)
+  onBackendReady: (callback) => ipcRenderer.on('backend-ready', callback),
+
+  // MCP Server
+  startMcpServer: () => ipcRenderer.invoke('start-mcp-server'),
+  stopMcpServer: () => ipcRenderer.invoke('stop-mcp-server'),
+  isMcpServerRunning: () => ipcRenderer.invoke('is-mcp-server-running'),
+  getMcpServerStatus: () => ipcRenderer.invoke('get-mcp-server-status'),
+  onMcpServerStarted: (callback) => ipcRenderer.on('mcp-server-started', callback)
 });

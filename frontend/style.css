@@ -424,3 +424,171 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--accent-color);
     color: white;
 }
+
+/* MCP Server Integration Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-container {
+    background-color: var(--bg-color-medium);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: var(--text-color-primary);
+    font-size: 1.5em;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: var(--text-color-secondary);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.modal-close-btn:hover {
+    background-color: var(--bg-color-light);
+    color: var(--text-color-primary);
+}
+
+.modal-content {
+    padding: 20px;
+}
+
+.modal-section {
+    margin-bottom: 25px;
+}
+
+.modal-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.modal-section h3 {
+    color: var(--text-color-primary);
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+.modal-section p {
+    color: var(--text-color-secondary);
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.modal-section code {
+    background-color: var(--bg-color-dark);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--accent-color);
+}
+
+.modal-section pre {
+    background-color: var(--bg-color-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 12px;
+    overflow-x: auto;
+    margin-top: 10px;
+}
+
+.modal-section pre code {
+    background: none;
+    padding: 0;
+    color: var(--text-color-primary);
+    font-size: 0.85em;
+    line-height: 1.4;
+}
+
+.modal-section ol {
+    color: var(--text-color-secondary);
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+.modal-section ol li {
+    margin-bottom: 5px;
+    line-height: 1.5;
+}
+
+.status-running {
+    color: #4caf50;
+    font-weight: bold;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.modal-footer label {
+    color: var(--text-color-secondary);
+    font-size: 0.9em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-footer input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.modal-ok-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+.modal-ok-btn:hover {
+    background-color: #005a9e;
+}

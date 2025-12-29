@@ -52,6 +52,71 @@
         </div>
     </div>
 
+    <!-- MCP Server Integration Modal -->
+    <div id="mcp-modal-overlay" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>MCP Server Started Successfully</h2>
+                <button id="mcp-modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-section">
+                    <p><strong>Status:</strong> <span class="status-running">Running</span></p>
+                    <p><strong>Server URL:</strong> <code>http://127.0.0.1:8001</code></p>
+                    <p><strong>SSE Endpoint:</strong> <code>http://127.0.0.1:8001/sse</code></p>
+                    <p><strong>Message Endpoint:</strong> <code>http://127.0.0.1:8001/messages/</code></p>
+                </div>
+
+                <div class="modal-section">
+                    <h3>VS Code Integration</h3>
+                    <p><strong>File:</strong> <code>~/.vscode/mcp.json</code> (Mac/Linux) or <code>%APPDATA%\Code\User\mcp.json</code> (Windows)</p>
+                    <pre><code>{
+  "mcpServers": {
+    "git-tracker": {
+      "url": "http://127.0.0.1:8001/sse"
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="modal-section">
+                    <h3>Cursor Integration</h3>
+                    <p><strong>File:</strong> <code>~/.cursor/mcp.json</code></p>
+                    <pre><code>{
+  "mcpServers": {
+    "git-tracker": {
+      "url": "http://127.0.0.1:8001/sse"
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="modal-section">
+                    <h3>PyCharm Integration (via Continue plugin)</h3>
+                    <ol>
+                        <li>Install Continue plugin</li>
+                        <li>Open Continue settings</li>
+                        <li>Add MCP server configuration:</li>
+                    </ol>
+                    <pre><code>{
+  "mcpServers": {
+    "git-tracker": {
+      "url": "http://127.0.0.1:8001/sse"
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="modal-footer">
+                    <label>
+                        <input type="checkbox" id="mcp-dont-show-again"> Don't show this again
+                    </label>
+                    <button id="mcp-modal-ok-btn" class="modal-ok-btn">Got it</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- NEW: Load Editor.js and plugins from node_modules -->
     <script src="libs/editor.js"></script>
     <script src="libs/header.js"></script>
