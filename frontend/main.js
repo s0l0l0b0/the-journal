@@ -1,6 +1,6 @@
 // frontend/main.js
 
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const axios = require('axios');
@@ -9,10 +9,18 @@ const isDev = process.env.NODE_ENV !== 'production';
 const backendPort = 8000;
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 
+// MCP Server configuration
+const mcpServerPort = 8001;
+const mcpServerUrl = `http://127.0.0.1:${mcpServerPort}`;
+
 let pythonProcess = null;
 let mainWindow = null;
 // NEW: Track backend state
-let isBackendReady = false; 
+let isBackendReady = false;
+
+// MCP Server state
+let mcpServerProcess = null;
+let isMcpServerRunning = false; 
 
 // Function to start the Python backend
 const startPythonBackend = () => {
@@ -39,6 +47,38 @@ const startPythonBackend = () => {
   pythonProcess.on('close', (code) => {
     console.log(`[Backend Process] exited with code ${code}`);
   });
+};
+
+const updateMcpServerMenu = () => {
+  const template = [
+    {
+      label: 'MCP Server',
+      submenu: [
+        {
+          label: 'Start MCP Server',
+          enabled: !isMcpServerRunning,
+          click: () => {
+            startMcpServer();
+          }
+        },
+        {
+          label: 'Stop MCP Server',
+          enabled: isMcpServerRunning,
+          click: () => {
+            stopMcpServer();
+          }
+        },
+        { type: 'separator' },
+        {
+          label: `Status: ${isMcpServerRunning ? 'Running' : 'Stopped'}`,
+          enabled: false
+        }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
 };
 
 const createWindow = () => {
@@ -80,12 +120,222 @@ const checkBackendReady = () => {
         });
 };
 
+// MCP Server Functions
+const startMcpServer = () => {
+  if (mcpServerProcess) {
+    console.log('MCP Server is already running');
+    return;
+  }
+
+  console.log('Starting MCP Server...');
+  // Reset check attempts counter
+  mcpServerCheckAttempts = 0;
+  
+  // Try 'uv' first, fallback to 'python'
+  const command = 'uv';
+  const args = ['run', 'server.py'];
+  const mcpServerPath = path.join(__dirname, '..', 'backend', 'app', 'git_work_tracker');
+
+  console.log(`MCP Server command: ${command} ${args.join(' ')}`);
+  console.log(`MCP Server working directory: ${mcpServerPath}`);
+
+  mcpServerProcess = spawn(command, args, {
+    cwd: mcpServerPath,
+    windowsHide: !isDev,
+  });
+
+  mcpServerProcess.stdout.on('data', (data) => {
+    const output = data.toString();
+    console.log(`[MCP Server STDOUT]: ${output}`);
+    // Check for common success indicators
+    if (output.includes('Uvicorn running') || output.includes('Application startup complete') || output.includes('started server process')) {
+      console.log('MCP Server appears to be starting up...');
+    }
+  });
+
+  mcpServerProcess.stderr.on('data', (data) => {
+    const error = data.toString();
+    console.error(`[MCP Server STDERR]: ${error}`);
+    // Don't treat all stderr as fatal - some servers log to stderr
+  });
+
+  mcpServerProcess.on('error', (error) => {
+    console.error(`[MCP Server Error]: ${error.message}`);
+    // If 'uv' command fails, try with 'python' as fallback
+    if (error.code === 'ENOENT') {
+      console.log('uv command not found, trying python...');
+      mcpServerProcess = null;
+      
+      // Try with python
+      const pythonCommand = 'python';
+      const pythonArgs = ['server.py'];
+      mcpServerProcess = spawn(pythonCommand, pythonArgs, {
+        cwd: mcpServerPath,
+        windowsHide: !isDev,
+      });
+
+      mcpServerProcess.stdout.on('data', (data) => {
+        const output = data.toString();
+        console.log(`[MCP Server STDOUT]: ${output}`);
+        // Check for common success indicators
+        if (output.includes('Uvicorn running') || output.includes('Application startup complete') || output.includes('started server process')) {
+          console.log('MCP Server appears to be starting up...');
+        }
+      });
+
+      mcpServerProcess.stderr.on('data', (data) => {
+        const error = data.toString();
+        console.error(`[MCP Server STDERR]: ${error}`);
+      });
+
+      mcpServerProcess.on('close', (code) => {
+        console.log(`[MCP Server Process] exited with code ${code}`);
+        mcpServerProcess = null;
+        isMcpServerRunning = false;
+        updateMcpServerMenu();
+      });
+
+      mcpServerProcess.on('error', (err) => {
+        console.error(`[MCP Server Error]: Failed to start with python: ${err.message}`);
+        mcpServerProcess = null;
+        isMcpServerRunning = false;
+        updateMcpServerMenu();
+      });
+
+      // Wait a bit before starting to check (server needs time to start)
+      setTimeout(() => {
+        checkMcpServerReady();
+      }, 1000);
+      return;
+    }
+  });
+
+  mcpServerProcess.on('close', (code) => {
+    console.log(`[MCP Server Process] exited with code ${code}`);
+    mcpServerProcess = null;
+    isMcpServerRunning = false;
+    updateMcpServerMenu();
+  });
+
+  // Wait a bit before starting to check (server needs time to start)
+  setTimeout(() => {
+    checkMcpServerReady();
+  }, 1000);
+};
+
+const stopMcpServer = () => {
+  if (mcpServerProcess) {
+    console.log('Stopping MCP Server...');
+    mcpServerProcess.kill();
+    mcpServerProcess = null;
+    isMcpServerRunning = false;
+    updateMcpServerMenu();
+  }
+};
+
+let mcpServerCheckAttempts = 0;
+const MAX_MCP_SERVER_CHECK_ATTEMPTS = 60; // 30 seconds max (60 * 500ms)
+
+const checkMcpServerReady = () => {
+  // Stop checking if we've exceeded max attempts
+  if (mcpServerCheckAttempts >= MAX_MCP_SERVER_CHECK_ATTEMPTS) {
+    console.error('MCP Server failed to start after 30 seconds. Check the server logs for errors.');
+    mcpServerCheckAttempts = 0;
+    if (mcpServerProcess) {
+      console.log('Stopping failed MCP server process...');
+      mcpServerProcess.kill();
+      mcpServerProcess = null;
+    }
+    isMcpServerRunning = false;
+    updateMcpServerMenu();
+    return;
+  }
+
+  mcpServerCheckAttempts++;
+  console.log(`Checking MCP Server... (attempt ${mcpServerCheckAttempts}/${MAX_MCP_SERVER_CHECK_ATTEMPTS})`);
+  
+  // FastMCP SSE transport uses /sse for SSE endpoint (GET request)
+  // Only check /sse endpoint to avoid POST endpoint warnings
+  const endpoints = [
+    `${mcpServerUrl}/sse`,  // SSE endpoint (default for FastMCP) - GET request
+    `${mcpServerUrl}/`,     // Root path as fallback
+  ];
+
+  // Check if process is still running
+  if (!mcpServerProcess || mcpServerProcess.killed) {
+    console.error('MCP Server process is not running.');
+    mcpServerCheckAttempts = 0;
+    isMcpServerRunning = false;
+    updateMcpServerMenu();
+    return;
+  }
+
+  // Try endpoints in order
+  const tryEndpoint = (index) => {
+    if (index >= endpoints.length) {
+      // All endpoints failed, try again with first endpoint
+      if (mcpServerCheckAttempts === 1 || mcpServerCheckAttempts % 10 === 0) {
+        console.log(`MCP Server not ready, trying again... (attempt ${mcpServerCheckAttempts})`);
+      }
+      setTimeout(checkMcpServerReady, 500);
+      return;
+    }
+
+    axios.get(endpoints[index], { 
+      timeout: 2000,
+      headers: {
+        'Accept': 'text/event-stream, application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then((response) => {
+        console.log(`MCP Server is ready! Endpoint: ${endpoints[index]}, Status: ${response.status}`);
+        mcpServerCheckAttempts = 0;
+        isMcpServerRunning = true;
+        updateMcpServerMenu();
+        if (mainWindow) {
+          mainWindow.webContents.send('mcp-server-started');
+        }
+      })
+      .catch((error) => {
+        // Try next endpoint
+        if (index < endpoints.length - 1) {
+          tryEndpoint(index + 1);
+        } else {
+          // All endpoints failed
+          if (mcpServerCheckAttempts === 1 || mcpServerCheckAttempts % 10 === 0) {
+            const errorMsg = error.code || error.message || 'Unknown error';
+            const errorDetails = error.response ? ` (HTTP ${error.response.status})` : '';
+            console.log(`MCP Server not ready: ${errorMsg}${errorDetails}, trying again...`);
+          }
+          
+          // If process died, stop checking
+          if (mcpServerProcess && mcpServerProcess.killed) {
+            console.error('MCP Server process has been killed.');
+            mcpServerCheckAttempts = 0;
+            mcpServerProcess = null;
+            isMcpServerRunning = false;
+            updateMcpServerMenu();
+            return;
+          }
+          
+          setTimeout(checkMcpServerReady, 500);
+        }
+      });
+  };
+
+  tryEndpoint(0);
+};
+
 app.whenReady().then(() => {
   console.log('App is ready, starting backend...');
   startPythonBackend();
   createWindow();
 
   checkBackendReady();
+
+  // Create initial menu
+  updateMcpServerMenu();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -100,6 +350,11 @@ app.on('will-quit', () => {
     console.log('App is quitting, terminating backend process...');
     pythonProcess.kill();
     pythonProcess = null;
+  }
+  if (mcpServerProcess) {
+    console.log('App is quitting, terminating MCP server process...');
+    mcpServerProcess.kill();
+    mcpServerProcess = null;
   }
 });
 
@@ -184,4 +439,37 @@ ipcMain.handle('permanently-delete-note', async (event, noteId) => {
         console.error(`Failed to permanently delete note ${noteId}:`, error.message);
         return false;
     }
+});
+
+// MCP Server IPC Handlers
+ipcMain.handle('start-mcp-server', () => {
+    try {
+        startMcpServer();
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to start MCP server:', error.message);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('stop-mcp-server', () => {
+    try {
+        stopMcpServer();
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to stop MCP server:', error.message);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('is-mcp-server-running', () => {
+    return isMcpServerRunning;
+});
+
+ipcMain.handle('get-mcp-server-status', () => {
+    return {
+        running: isMcpServerRunning,
+        url: mcpServerUrl,
+        port: mcpServerPort
+    };
 });

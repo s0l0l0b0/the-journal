@@ -32,22 +32,38 @@ All git operations run asynchronously using `asyncio.create_subprocess_exec`
 - Weekly summaries
 
 
-#### To run the server in dev mode go to the /backend/app/git_work_tracker/ directory and run:
-uv run mcp dev server.py
+## 🚀 Running the Server
+
+The MCP server runs as an SSE (Server-Sent Events) service. To start it:
+
+1. Navigate to the `/backend/app/git_work_tracker/` directory
+2. Run the server:
+   ```bash
+   python server.py
+   ```
+   Or using `uv`:
+   ```bash
+   uv run server.py
+   ```
+
+The server will start on `http://0.0.0.0:8001` (accessible at `http://127.0.0.1:8001` for local access).
+
+**MCP SSE Endpoint:** `http://127.0.0.1:8001/sse`  
+**Message Endpoint:** `http://127.0.0.1:8001/messages/`
+
+**Note:** The server must be running before clients can connect to it. Keep the server process running while using the MCP tools in your IDE.
 
 ### 3. Configure in VS Code
 
 **File:** `~/.vscode/mcp.json` (Mac/Linux) or `%APPDATA%\Code\User\mcp.json` (Windows)
 
+**Important:** Make sure the MCP server is running before configuring the client.
+
 ```json
 {
   "mcpServers": {
     "git-tracker": {
-      "command": "python",
-      "args": ["/absolute/path/to/server.py"],
-      "env": {
-        "PYTHONPATH": "/absolute/path/to/git_work_tracker"
-      }
+      "url": "http://127.0.0.1:8001/sse"
     }
   }
 }
@@ -57,13 +73,13 @@ uv run mcp dev server.py
 
 **File:** `~/.cursor/mcp.json`
 
+**Important:** Make sure the MCP server is running before configuring the client.
+
 ```json
 {
   "mcpServers": {
     "git-tracker": {
-      "command": "uv",
-      "args": ["run", "server.py"],
-      "cwd": "/absolute/path/to/git_work_tracker"
+      "url": "http://127.0.0.1:8001/sse"
     }
   }
 }
@@ -75,12 +91,13 @@ uv run mcp dev server.py
 2. Open Continue settings
 3. Add MCP server:
 
+**Important:** Make sure the MCP server is running before configuring the client.
+
 ```json
 {
   "mcpServers": {
     "git-tracker": {
-      "command": "python",
-      "args": ["/absolute/path/to/server.py"]
+      "url": "http://127.0.0.1:8001/sse"
     }
   }
 }
@@ -292,6 +309,28 @@ M  tools/git_tracker.py
 
 ## 🐛 Troubleshooting
 
+### Connection errors / Server not reachable
+
+**Error:** "Could not connect to MCP server" or "Connection refused"
+
+**Solutions:**
+1. Make sure the MCP server is running. Check by visiting `http://127.0.0.1:8001/sse` in your browser (you should see a response, even if it's an error page)
+2. Verify the server started successfully - check the terminal where you ran `python server.py`
+3. Check if port 8001 is already in use:
+   ```bash
+   # On Mac/Linux
+   lsof -i :8001
+   # On Windows
+   netstat -ano | findstr :8001
+   ```
+4. If port 8001 is in use, you can change it in `server.py`:
+   ```python
+   mcp = FastMCP("Git Work Tracker", host="0.0.0.0", port=8002)
+   # ... rest of configuration ...
+   mcp.run(transport="sse")
+   ```
+   Then update your IDE configuration to use the new port.
+
 ### "Not a git repository" error
 
 Make sure you're running from a git repository or specify the path:
@@ -307,12 +346,28 @@ The tool looks for commits made TODAY (since 00:00:00). Make sure you have commi
 
 Ensure the MCP server has permission to run git commands and read the repository.
 
+### Server won't start
+
+**Error:** "Address already in use" or port binding errors
+
+**Solutions:**
+1. Another process is using port 8001 - find and stop it, or use a different port
+2. Check firewall settings if binding to `0.0.0.0`
+3. Try binding to `127.0.0.1` instead of `0.0.0.0` for local-only access:
+   ```python
+   mcp = FastMCP("Git Work Tracker", host="127.0.0.1", port=8001)
+   # ... rest of configuration ...
+   mcp.run(transport="sse")
+   ```
+
 ### Testing without IDE
 
-Run the test script:
+You can test the server is running by making a direct HTTP request to the SSE endpoint:
 ```bash
-python test_git_tools.py
+curl http://127.0.0.1:8001/sse
 ```
+
+Or test the tools programmatically using the MCP client library with the SSE endpoint.
 
 ## 🔒 Privacy & Security
 

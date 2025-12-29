@@ -1,13 +1,14 @@
-from mcp.server.fastmcp import FastMCP
+from git_work_tracker.prompts.git_prompts import register_git_prompts
 
 # Import registration functions
 from git_work_tracker.tools.git_tracker import register_git_tools
-from git_work_tracker.prompts.git_prompts import register_git_prompts 
-
+from mcp.server.fastmcp import FastMCP
 
 # Create the FastMCP server instance
 mcp = FastMCP(
     "Git Work Tracker",
+    host="0.0.0.0",
+    port=8001,
     instructions="""
     This server helps you track and document your daily development work.
     
@@ -35,4 +36,4 @@ register_git_tools(mcp)
 register_git_prompts(mcp)
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="sse")
