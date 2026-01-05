@@ -1,110 +1,105 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import List from '@editorjs/list';
-import Code from '@editorjs/code';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import YooptaEditor, { createYooptaEditor } from '@yoopta/editor';
 
-function Editor({ note, onNoteUpdate, onDeleteNote, editorRef }) {
-    const editorHolderRef = useRef(null);
-    const editorInstanceRef = useRef(null);
+// Plugins
+import Paragraph from '@yoopta/paragraph';
+import { HeadingOne, HeadingTwo, HeadingThree } from '@yoopta/headings';
+import { BulletedList, NumberedList, TodoList } from '@yoopta/lists';
+import Blockquote from '@yoopta/blockquote';
+import Code from '@yoopta/code';
+
+// Marks
+import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/marks';
+
+// Tools
+import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
+import ActionMenu, { DefaultActionMenuRender } from '@yoopta/action-menu-list';
+import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
+
+// Define plugins array
+const plugins = [
+    Paragraph,
+    HeadingOne,
+    HeadingTwo,
+    HeadingThree,
+    BulletedList,
+    NumberedList,
+    TodoList,
+    Blockquote,
+    Code,
+];
+
+// Define marks array
+const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
+
+// Define tools - must be outside component
+const TOOLS = {
+    Toolbar: {
+        tool: Toolbar,
+        render: DefaultToolbarRender,
+    },
+    ActionMenu: {
+        tool: ActionMenu,
+        render: DefaultActionMenuRender,
+    },
+    LinkTool: {
+        tool: LinkTool,
+        render: DefaultLinkToolRender,
+    },
+};
+
+function Editor({ note, onNoteUpdate, onDeleteNote }) {
+    const editor = useMemo(() => createYooptaEditor(), []);
     const [title, setTitle] = useState(note?.title || '');
     const saveTimeoutRef = useRef(null);
     const currentNoteIdRef = useRef(note?.id);
+    const selectionRef = useRef(null);
 
-    // Initialize EditorJS
-    useEffect(() => {
-        if (!editorHolderRef.current) return;
-
-        // Destroy existing editor if switching notes
-        if (editorInstanceRef.current) {
-            editorInstanceRef.current.destroy();
-            editorInstanceRef.current = null;
-        }
-
-        const editor = new EditorJS({
-            holder: editorHolderRef.current,
-            placeholder: "Let's write an awesome story! Type / to open menu...",
-            tools: {
-                header: Header,
-                list: List,
-                code: Code,
-            },
-            data: parseNoteContent(note?.content),
-            onChange: () => {
-                handleEditorChange();
-            },
-        });
-
-        editorInstanceRef.current = editor;
-        if (editorRef) {
-            editorRef.current = editor;
-        }
-
-        // Cleanup on unmount
-        return () => {
-            if (editorInstanceRef.current) {
-                editorInstanceRef.current.destroy();
-                editorInstanceRef.current = null;
-            }
-        };
-    }, [note?.id]); // Reinitialize when note changes
-
-    // Update title when note changes
-    useEffect(() => {
-        setTitle(note?.title || '');
-        currentNoteIdRef.current = note?.id;
-    }, [note?.id, note?.title]);
-
-    // Parse note content with fallback
-    const parseNoteContent = (content) => {
-        if (!content) {
-            return { blocks: [] };
-        }
+    // Parse stored content or use empty state
+    const getInitialValue = useCallback(() => {
+        if (!note?.content) return undefined;
         try {
-            const data = JSON.parse(content);
-            if (data.blocks && Array.isArray(data.blocks)) {
-                return data;
+            const parsed = JSON.parse(note.content);
+            // Check if it's Yoopta format (object with block IDs)
+            if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return parsed;
             }
-            throw new Error('Invalid structure');
+            // Legacy EditorJS format - return empty for fresh start
+            return undefined;
         } catch (e) {
-            return {
-                time: Date.now(),
-                blocks: [
-                    {
-                        type: 'paragraph',
-                        data: { text: content }
-                    }
-                ],
-                version: '2.29.0'
-            };
+            return undefined;
         }
-    };
+    }, [note?.content]);
+
+    const [value, setValue] = useState(getInitialValue);
+
+    // Update when note changes
+    useEffect(() => {
+        if (note?.id !== currentNoteIdRef.current) {
+            setTitle(note?.title || '');
+            setValue(getInitialValue());
+            currentNoteIdRef.current = note?.id;
+        }
+    }, [note?.id, note?.title, getInitialValue]);
 
     // Debounced save function
-    const handleSave = useCallback(async () => {
-        if (!editorInstanceRef.current) return;
-
-        try {
-            const outputData = await editorInstanceRef.current.save();
-            const contentString = JSON.stringify(outputData);
-
-            onNoteUpdate({
-                title: title,
-                content: contentString
-            });
-        } catch (error) {
-            console.error('Error saving editor content:', error);
-        }
-    }, [title, onNoteUpdate]);
-
-    // Handle editor content changes
-    const handleEditorChange = useCallback(() => {
+    const handleSave = useCallback((content) => {
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
         saveTimeoutRef.current = setTimeout(() => {
-            handleSave();
+            const contentString = JSON.stringify(content);
+            onNoteUpdate({
+                title: title,
+                content: contentString
+            });
         }, 500);
+    }, [title, onNoteUpdate]);
+
+    // Handle editor content changes
+    const handleChange = useCallback((newValue) => {
+        setValue(newValue);
+        handleSave(newValue);
     }, [handleSave]);
 
     // Handle title changes
@@ -118,21 +113,10 @@ function Editor({ note, onNoteUpdate, onDeleteNote, editorRef }) {
         saveTimeoutRef.current = setTimeout(() => {
             onNoteUpdate({
                 title: newTitle,
-                content: null // Will be fetched from editor in handleSave
+                content: JSON.stringify(value)
             });
-            handleSave();
         }, 500);
     };
-
-    // Handle Cmd+Enter for soft break
-    const handleKeyDown = useCallback((e) => {
-        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-            e.preventDefault();
-            e.stopPropagation();
-            document.execCommand('insertLineBreak');
-            handleEditorChange();
-        }
-    }, [handleEditorChange]);
 
     return (
         <div id="editor-container">
@@ -143,11 +127,19 @@ function Editor({ note, onNoteUpdate, onDeleteNote, editorRef }) {
                 value={title}
                 onChange={handleTitleChange}
             />
-            <div
-                id="editorjs"
-                ref={editorHolderRef}
-                onKeyDown={handleKeyDown}
-            />
+            <div id="editorjs" ref={selectionRef}>
+                <YooptaEditor
+                    editor={editor}
+                    plugins={plugins}
+                    marks={MARKS}
+                    tools={TOOLS}
+                    value={value}
+                    onChange={handleChange}
+                    selectionBoxRoot={selectionRef}
+                    placeholder="Start writing your note..."
+                    style={{ width: '100%', paddingBottom: '50px' }}
+                />
+            </div>
             <button
                 id="delete-note-btn"
                 onClick={onDeleteNote}

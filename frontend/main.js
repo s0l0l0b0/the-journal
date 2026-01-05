@@ -255,13 +255,6 @@ const checkMcpServerReady = () => {
   mcpServerCheckAttempts++;
   console.log(`Checking MCP Server... (attempt ${mcpServerCheckAttempts}/${MAX_MCP_SERVER_CHECK_ATTEMPTS})`);
 
-  // FastMCP SSE transport uses /sse for SSE endpoint (GET request)
-  // Only check /sse endpoint to avoid POST endpoint warnings
-  const endpoints = [
-    `${mcpServerUrl}/sse`,  // SSE endpoint (default for FastMCP) - GET request
-    `${mcpServerUrl}/`,     // Root path as fallback
-  ];
-
   // Check if process is still running
   if (!mcpServerProcess || mcpServerProcess.killed) {
     console.error('MCP Server process is not running.');
@@ -271,61 +264,55 @@ const checkMcpServerReady = () => {
     return;
   }
 
-  // Try endpoints in order
-  const tryEndpoint = (index) => {
-    if (index >= endpoints.length) {
-      // All endpoints failed, try again with first endpoint
-      if (mcpServerCheckAttempts === 1 || mcpServerCheckAttempts % 10 === 0) {
-        console.log(`MCP Server not ready, trying again... (attempt ${mcpServerCheckAttempts})`);
-      }
-      setTimeout(checkMcpServerReady, 500);
-      return;
-    }
-
-    axios.get(endpoints[index], {
-      timeout: 2000,
-      headers: {
-        'Accept': 'text/event-stream, application/json',
-        'Content-Type': 'application/json'
+  // Only check /sse endpoint - the actual SSE endpoint for FastMCP
+  axios.get(`${mcpServerUrl}/sse`, {
+    timeout: 2000,
+    headers: {
+      'Accept': 'text/event-stream'
+    },
+    // Don't wait for full response, just check if connection is accepted
+    validateStatus: (status) => status === 200
+  })
+    .then((response) => {
+      console.log(`MCP Server is ready! Status: ${response.status}`);
+      mcpServerCheckAttempts = 0;
+      isMcpServerRunning = true;
+      updateMcpServerMenu();
+      if (mainWindow) {
+        mainWindow.webContents.send('mcp-server-started');
       }
     })
-      .then((response) => {
-        console.log(`MCP Server is ready! Endpoint: ${endpoints[index]}, Status: ${response.status}`);
+    .catch((error) => {
+      // SSE endpoints stream data, which can cause axios to throw errors even when
+      // the server responds with 200 OK. Check if we got a 200 response despite the error.
+      if (error.response && error.response.status === 200) {
+        console.log('MCP Server is ready! (SSE connection accepted)');
         mcpServerCheckAttempts = 0;
         isMcpServerRunning = true;
         updateMcpServerMenu();
         if (mainWindow) {
           mainWindow.webContents.send('mcp-server-started');
         }
-      })
-      .catch((error) => {
-        // Try next endpoint
-        if (index < endpoints.length - 1) {
-          tryEndpoint(index + 1);
-        } else {
-          // All endpoints failed
-          if (mcpServerCheckAttempts === 1 || mcpServerCheckAttempts % 10 === 0) {
-            const errorMsg = error.code || error.message || 'Unknown error';
-            const errorDetails = error.response ? ` (HTTP ${error.response.status})` : '';
-            console.log(`MCP Server not ready: ${errorMsg}${errorDetails}, trying again...`);
-          }
+        return;
+      }
 
-          // If process died, stop checking
-          if (mcpServerProcess && mcpServerProcess.killed) {
-            console.error('MCP Server process has been killed.');
-            mcpServerCheckAttempts = 0;
-            mcpServerProcess = null;
-            isMcpServerRunning = false;
-            updateMcpServerMenu();
-            return;
-          }
+      // If process died, stop checking
+      if (mcpServerProcess && mcpServerProcess.killed) {
+        console.error('MCP Server process has been killed.');
+        mcpServerCheckAttempts = 0;
+        mcpServerProcess = null;
+        isMcpServerRunning = false;
+        updateMcpServerMenu();
+        return;
+      }
 
-          setTimeout(checkMcpServerReady, 500);
-        }
-      });
-  };
+      if (mcpServerCheckAttempts === 1 || mcpServerCheckAttempts % 10 === 0) {
+        const errorMsg = error.code || error.message || 'Unknown error';
+        console.log(`MCP Server not ready: ${errorMsg}, trying again...`);
+      }
 
-  tryEndpoint(0);
+      setTimeout(checkMcpServerReady, 500);
+    });
 };
 
 app.whenReady().then(() => {
