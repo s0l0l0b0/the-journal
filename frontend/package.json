@@ -1,10 +1,14 @@
 {
   "name": "the-journal",
   "version": "1.0.0",
-  "description": "",
+  "description": "A journal app with React and Electron",
   "main": "main.js",
   "scripts": {
-    "start": "electron . --disable-gpu",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npm run build && electron . --disable-gpu",
+    "electron:dev": "electron . --disable-gpu",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,13 +23,17 @@
   },
   "homepage": "https://github.com/s0l0l0b0/the-journal#readme",
   "devDependencies": {
-    "electron": "^38.3.0"
+    "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^38.3.0",
+    "vite": "^7.3.0"
   },
   "dependencies": {
     "@editorjs/code": "^2.9.4",
     "@editorjs/editorjs": "^2.31.0",
     "@editorjs/header": "^2.8.8",
     "@editorjs/list": "^2.0.9",
-    "axios": "^1.12.2"
+    "axios": "^1.12.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   }
 }

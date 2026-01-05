@@ -20,7 +20,7 @@ let isBackendReady = false;
 
 // MCP Server state
 let mcpServerProcess = null;
-let isMcpServerRunning = false; 
+let isMcpServerRunning = false;
 
 // Function to start the Python backend
 const startPythonBackend = () => {
@@ -94,7 +94,8 @@ const createWindow = () => {
     },
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  // Load the built React app from dist folder
+  mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
 
   // Open DevTools automatically in development
   if (isDev) {
@@ -104,20 +105,20 @@ const createWindow = () => {
 
 // This function will ping the backend until it's ready.
 const checkBackendReady = () => {
-    console.log('Pinging backend...');
-    axios.get(backendUrl)
-        .then(() => {
-            console.log('Backend is ready. Notifying renderer.');
-            // UPDATED: Mark backend as ready so new handlers can check this status
-            isBackendReady = true; 
-            if (mainWindow) {
-                mainWindow.webContents.send('backend-ready');
-            }
-        })
-        .catch(() => {
-            console.log('Backend not ready, trying again in 250ms.');
-            setTimeout(checkBackendReady, 250);
-        });
+  console.log('Pinging backend...');
+  axios.get(backendUrl)
+    .then(() => {
+      console.log('Backend is ready. Notifying renderer.');
+      // UPDATED: Mark backend as ready so new handlers can check this status
+      isBackendReady = true;
+      if (mainWindow) {
+        mainWindow.webContents.send('backend-ready');
+      }
+    })
+    .catch(() => {
+      console.log('Backend not ready, trying again in 250ms.');
+      setTimeout(checkBackendReady, 250);
+    });
 };
 
 // MCP Server Functions
@@ -130,7 +131,7 @@ const startMcpServer = () => {
   console.log('Starting MCP Server...');
   // Reset check attempts counter
   mcpServerCheckAttempts = 0;
-  
+
   // Try 'uv' first, fallback to 'python'
   const command = 'uv';
   const args = ['run', 'server.py'];
@@ -165,7 +166,7 @@ const startMcpServer = () => {
     if (error.code === 'ENOENT') {
       console.log('uv command not found, trying python...');
       mcpServerProcess = null;
-      
+
       // Try with python
       const pythonCommand = 'python';
       const pythonArgs = ['server.py'];
@@ -253,7 +254,7 @@ const checkMcpServerReady = () => {
 
   mcpServerCheckAttempts++;
   console.log(`Checking MCP Server... (attempt ${mcpServerCheckAttempts}/${MAX_MCP_SERVER_CHECK_ATTEMPTS})`);
-  
+
   // FastMCP SSE transport uses /sse for SSE endpoint (GET request)
   // Only check /sse endpoint to avoid POST endpoint warnings
   const endpoints = [
@@ -281,7 +282,7 @@ const checkMcpServerReady = () => {
       return;
     }
 
-    axios.get(endpoints[index], { 
+    axios.get(endpoints[index], {
       timeout: 2000,
       headers: {
         'Accept': 'text/event-stream, application/json',
@@ -308,7 +309,7 @@ const checkMcpServerReady = () => {
             const errorDetails = error.response ? ` (HTTP ${error.response.status})` : '';
             console.log(`MCP Server not ready: ${errorMsg}${errorDetails}, trying again...`);
           }
-          
+
           // If process died, stop checking
           if (mcpServerProcess && mcpServerProcess.killed) {
             console.error('MCP Server process has been killed.');
@@ -318,7 +319,7 @@ const checkMcpServerReady = () => {
             updateMcpServerMenu();
             return;
           }
-          
+
           setTimeout(checkMcpServerReady, 500);
         }
       });
@@ -368,7 +369,7 @@ app.on('window-all-closed', () => {
 
 // NEW: This is the handler that was missing and causing your error
 ipcMain.handle('is-backend-ready', () => {
-    return isBackendReady;
+  return isBackendReady;
 });
 
 ipcMain.handle('get-notes', async () => {
@@ -382,94 +383,94 @@ ipcMain.handle('get-notes', async () => {
 });
 
 ipcMain.handle('get-deleted-notes', async () => {
-    try {
-        const response = await axios.get(`${backendUrl}/notes/deleted`);
-        return response.data;
-    } catch (error) {
-        console.error('Failed to get deleted notes:', error.message);
-        return null;
-    }
+  try {
+    const response = await axios.get(`${backendUrl}/notes/deleted`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get deleted notes:', error.message);
+    return null;
+  }
 });
 
 ipcMain.handle('create-note', async (event, noteData) => {
-    try {
-        const response = await axios.post(`${backendUrl}/notes`, noteData);
-        return response.data;
-    } catch (error) {
-        console.error('Failed to create note:', error.message);
-        return null;
-    }
+  try {
+    const response = await axios.post(`${backendUrl}/notes`, noteData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create note:', error.message);
+    return null;
+  }
 });
 
 ipcMain.handle('update-note', async (event, noteId, noteData) => {
-    try {
-        const response = await axios.put(`${backendUrl}/notes/${noteId}`, noteData);
-        return response.data;
-    } catch (error) {
-        console.error(`Failed to update note ${noteId}:`, error.message);
-        return null;
-    }
+  try {
+    const response = await axios.put(`${backendUrl}/notes/${noteId}`, noteData);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to update note ${noteId}:`, error.message);
+    return null;
+  }
 });
 
 ipcMain.handle('soft-delete-note', async (event, noteId) => {
-    try {
-        await axios.delete(`${backendUrl}/notes/${noteId}`);
-        return true;
-    } catch (error) {
-        console.error(`Failed to delete note ${noteId}:`, error.message);
-        return false;
-    }
+  try {
+    await axios.delete(`${backendUrl}/notes/${noteId}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to delete note ${noteId}:`, error.message);
+    return false;
+  }
 });
 
 ipcMain.handle('restore-note', async (event, noteId) => {
-    try {
-        await axios.put(`${backendUrl}/notes/${noteId}/restore`);
-        return true;
-    } catch (error) {
-        console.error(`Failed to restore note ${noteId}:`, error.message);
-        return false;
-    }
+  try {
+    await axios.put(`${backendUrl}/notes/${noteId}/restore`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to restore note ${noteId}:`, error.message);
+    return false;
+  }
 });
 
 ipcMain.handle('permanently-delete-note', async (event, noteId) => {
-    try {
-        await axios.delete(`${backendUrl}/notes/${noteId}/permanent`);
-        return true;
-    } catch (error) {
-        console.error(`Failed to permanently delete note ${noteId}:`, error.message);
-        return false;
-    }
+  try {
+    await axios.delete(`${backendUrl}/notes/${noteId}/permanent`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to permanently delete note ${noteId}:`, error.message);
+    return false;
+  }
 });
 
 // MCP Server IPC Handlers
 ipcMain.handle('start-mcp-server', () => {
-    try {
-        startMcpServer();
-        return { success: true };
-    } catch (error) {
-        console.error('Failed to start MCP server:', error.message);
-        return { success: false, error: error.message };
-    }
+  try {
+    startMcpServer();
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to start MCP server:', error.message);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('stop-mcp-server', () => {
-    try {
-        stopMcpServer();
-        return { success: true };
-    } catch (error) {
-        console.error('Failed to stop MCP server:', error.message);
-        return { success: false, error: error.message };
-    }
+  try {
+    stopMcpServer();
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to stop MCP server:', error.message);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('is-mcp-server-running', () => {
-    return isMcpServerRunning;
+  return isMcpServerRunning;
 });
 
 ipcMain.handle('get-mcp-server-status', () => {
-    return {
-        running: isMcpServerRunning,
-        url: mcpServerUrl,
-        port: mcpServerPort
-    };
+  return {
+    running: isMcpServerRunning,
+    url: mcpServerUrl,
+    port: mcpServerPort
+  };
 });
