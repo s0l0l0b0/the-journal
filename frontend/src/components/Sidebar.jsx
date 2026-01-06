@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 import NoteItem from './NoteItem.jsx';
+import { useTheme } from '../context/ThemeContext';
 
 function Sidebar({ notes, activeNoteId, isRecycleBinView, onNoteSelect, onNewNote, onRecycleBinClick }) {
     const [isOpen, setIsOpen] = useState(false);
+    const { theme, toggleTheme } = useTheme();
 
     const handleMouseEnter = useCallback(() => setIsOpen(true), []);
     const handleMouseLeave = useCallback(() => setIsOpen(false), []);
@@ -45,6 +47,14 @@ function Sidebar({ notes, activeNoteId, isRecycleBinView, onNoteSelect, onNewNot
                 </div>
 
                 <div id="sidebar-footer">
+                    <button
+                        id="theme-toggle-btn"
+                        className="sidebar-btn"
+                        onClick={toggleTheme}
+                        style={{ marginBottom: '10px', backgroundColor: 'var(--bg-tertiary)', color: 'var(--text-primary)' }}
+                    >
+                        Theme: {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                    </button>
                     <button
                         id="recycle-bin-btn"
                         className="sidebar-btn"

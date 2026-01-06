@@ -7,6 +7,9 @@ import { HeadingOne, HeadingTwo, HeadingThree } from '@yoopta/headings';
 import { BulletedList, NumberedList, TodoList } from '@yoopta/lists';
 import Blockquote from '@yoopta/blockquote';
 import Code from '@yoopta/code';
+import Image from '@yoopta/image';
+import Video from '@yoopta/video';
+import Embed from '@yoopta/embed';
 
 // Marks
 import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/marks';
@@ -15,6 +18,16 @@ import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/ma
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
 import ActionMenu, { DefaultActionMenuRender } from '@yoopta/action-menu-list';
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
+
+// Define plugins array
+// Define uploader function for local files (Base64)
+const onUpload = async (file) => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve({ src: reader.result, alt: file.name });
+        reader.readAsDataURL(file);
+    });
+};
 
 // Define plugins array
 const plugins = [
@@ -27,6 +40,17 @@ const plugins = [
     TodoList,
     Blockquote,
     Code,
+    Image.extend({
+        options: {
+            onUpload,
+        },
+    }),
+    Video.extend({
+        options: {
+            onUpload,
+        },
+    }),
+    Embed,
 ];
 
 // Define marks array

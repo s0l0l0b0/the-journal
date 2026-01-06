@@ -2,14 +2,35 @@
 
 /* --- Global Styles & Variables --- */
 :root {
-    --bg-color-dark: #1e1e1e;
-    --bg-color-medium: #2a2a2a;
-    --bg-color-light: #3c3c3c;
-    --text-color-primary: #d4d4d4;
-    --text-color-secondary: #a0a0a0;
+    /* Default (Dark) Theme */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #2a2a2a;
+    --bg-tertiary: #3c3c3c;
+    --text-primary: #d4d4d4;
+    --text-secondary: #a0a0a0;
     --accent-color: #007acc;
     --border-color: #4a4a4a;
     --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f3f3f3;
+    --bg-tertiary: #e5e5e5;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --accent-color: #007acc;
+    --border-color: #e0e0e0;
+}
+
+[data-theme="midnight"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --accent-color: #38bdf8;
+    --border-color: #475569;
 }
 
 * {
@@ -20,8 +41,8 @@
 
 body {
     font-family: var(--font-family);
-    background-color: var(--bg-color-dark);
-    color: var(--text-color-primary);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     overflow: hidden;
     height: 100vh;
     width: 100vw;
@@ -37,7 +58,7 @@ body {
     width: 280px;
     /* NEW: Start with the sidebar mostly hidden off-screen */
     margin-left: -270px;
-    background-color: var(--bg-color-medium);
+    background-color: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -56,7 +77,8 @@ body {
 }
 
 /* --- Sidebar Components --- */
-#sidebar-header, #sidebar-footer {
+#sidebar-header,
+#sidebar-footer {
     padding: 10px;
 }
 
@@ -78,7 +100,8 @@ body {
 
 #notes-list-container {
     flex-grow: 1;
-    overflow-y: auto; /* Make the list scrollable */
+    overflow-y: auto;
+    /* Make the list scrollable */
 }
 
 #notes-list {
@@ -93,7 +116,7 @@ body {
 }
 
 .note-item:hover {
-    background-color: var(--bg-color-light);
+    background-color: var(--bg-tertiary);
 }
 
 .note-item.selected {
@@ -110,7 +133,7 @@ body {
 
 .note-item-date {
     font-size: 12px;
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     margin-top: 5px;
 }
 
@@ -125,7 +148,7 @@ body {
     background: none;
     border: none;
     border-bottom: 1px solid var(--border-color);
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     font-size: 24px;
     padding: 20px;
     outline: none;
@@ -135,12 +158,13 @@ body {
     flex-grow: 1;
     background: none;
     border: none;
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     font-size: 16px;
     line-height: 1.6;
     padding: 20px;
     outline: none;
-    resize: none; /* Disable manual resizing */
+    resize: none;
+    /* Disable manual resizing */
     font-family: var(--font-family);
 }
 
@@ -160,7 +184,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100%;
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     text-align: center;
 }
 
@@ -176,7 +200,7 @@ body {
     align-items: center;
     height: 100%;
     text-align: center;
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
 }
 
 #recycle-bin-actions-container h3 {
@@ -215,29 +239,31 @@ body {
 /* --- Tab Bar Styles --- */
 #tab-bar {
     display: flex;
-    background-color: var(--bg-color-dark);
+    background-color: var(--bg-primary);
     border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0; /* Prevent the tab bar from shrinking */
+    flex-shrink: 0;
+    /* Prevent the tab bar from shrinking */
 }
 
 .tab-item {
     display: flex;
     align-items: center;
     padding: 10px 15px;
-    background-color: var(--bg-color-medium);
+    background-color: var(--bg-secondary);
     border-right: 1px solid var(--border-color);
     cursor: pointer;
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     white-space: nowrap;
 }
 
 .tab-item.active {
-    background-color: var(--bg-color-dark);
-    color: var(--text-color-primary);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 .tab-title {
-    max-width: 150px; /* Prevent long titles from pushing everything out */
+    max-width: 150px;
+    /* Prevent long titles from pushing everything out */
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -246,7 +272,7 @@ body {
     margin-left: 10px;
     background: none;
     border: none;
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     font-size: 16px;
     cursor: pointer;
     padding: 2px;
@@ -255,8 +281,8 @@ body {
 }
 
 .tab-close-btn:hover {
-    background-color: var(--bg-color-light);
-    color: var(--text-color-primary);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 /* --- Sliding Sidebar Logic --- */
@@ -271,26 +297,32 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 20px; /* How far from the edge the mouse must be to trigger */
+    width: 20px;
+    /* How far from the edge the mouse must be to trigger */
     height: 100vh;
-    background-color: transparent; /* It's invisible */
-    z-index: 999; /* Ensures it's on top of other content */
+    background-color: transparent;
+    /* It's invisible */
+    z-index: 999;
+    /* Ensures it's on top of other content */
 }
 
 /* --- Custom Scrollbar Styling --- */
 /* NEW: Target the scrollbar itself */
 ::-webkit-scrollbar {
-    width: 8px; /* Make it thinner */
+    width: 8px;
+    /* Make it thinner */
 }
 
 /* NEW: Style the track (the background of the scrollbar) */
 ::-webkit-scrollbar-track {
-    background: var(--bg-color-medium); /* Match the sidebar background */
+    background: var(--bg-secondary);
+    /* Match the sidebar background */
 }
 
 /* NEW: Style the thumb (the part you drag) */
 ::-webkit-scrollbar-thumb {
-    background: var(--bg-color-light); /* A slightly lighter color */
+    background: var(--bg-tertiary);
+    /* A slightly lighter color */
     border-radius: 4px;
 }
 
@@ -305,15 +337,16 @@ body {
 /* --- Editor.js "Card" Theme Overrides --- */
 
 #editorjs {
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     font-family: var(--font-family);
 
     flex-grow: 1;
-    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
     height: 0;
-    
+
     /* Space for the sidebar trigger + general breathing room */
-    padding: 40px 40px 40px 100px; 
+    padding: 40px 40px 40px 100px;
     max-width: 100%;
     box-sizing: border-box;
 }
@@ -323,61 +356,74 @@ body {
    Targeting .ce-block__content styles the actual text/image area
 */
 .ce-block__content {
-    background-color: var(--bg-color-medium); /* Distinct card background */
-    padding: 20px 30px; /* Internal spacing inside the card */
-    border-radius: 12px; /* Rounded corners */
-    border: 1px solid #4a4a4a;  /* Subtle border */
-    
+    background-color: var(--bg-secondary);
+    /* Distinct card background */
+    padding: 20px 30px;
+    /* Internal spacing inside the card */
+    border-radius: 12px;
+    /* Rounded corners */
+    border: 1px solid #4a4a4a;
+    /* Subtle border */
+
     /* Spacing between cards */
-    margin-top: 16px; 
+    margin-top: 16px;
     margin-bottom: 16px;
-    
+
     /* Make cards wide but readable */
-    max-width: 100% !important; 
-    
+    max-width: 100% !important;
+
     /* Animation for smooth hover effects */
     transition: all 0.2s ease-in-out;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Hover Effect: Lift the card slightly when mouse is over it */
 .ce-block__content:hover {
-    border-color: var(--text-color-secondary);
+    border-color: var(--text-secondary);
     transform: translateY(-2px);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    background-color: #333; /* Slightly lighter on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    background-color: #333;
+    /* Slightly lighter on hover */
 }
 
 /* Focused Effect: When you are typing in a block, highlight it */
 .ce-block--focused .ce-block__content {
     border-color: var(--accent-color);
-    background-color: var(--bg-color-light);
-    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2); /* Blue glow */
+    background-color: var(--bg-tertiary);
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+    /* Blue glow */
 }
 
 /* --- Typography Fixes inside Cards --- */
 
 /* Reset margins for headers so they fit nicely in the card */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     margin: 0;
-    color: var(--text-color-primary);
+    color: var(--text-primary);
 }
 
 /* Text colors */
 .ce-paragraph {
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     line-height: 1.6;
 }
 
 /* Lists */
 .cdx-list__item {
-    color: var(--text-color-primary);
+    color: var(--text-primary);
 }
 
 /* Code Blocks: Make them look like a "screen" inside the card */
 .ce-code__textarea {
-    background-color: #111 !important; /* Darker than the card */
-    color: #0f0 !important; /* Matrix green text */
+    background-color: #111 !important;
+    /* Darker than the card */
+    color: #0f0 !important;
+    /* Matrix green text */
     border: 1px solid #444 !important;
     border-radius: 6px;
     margin-top: 10px;
@@ -391,11 +437,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Style the popup menus (when you click the plus button) */
-.ce-popover, 
-.ce-toolbar__plus, 
+.ce-popover,
+.ce-toolbar__plus,
 .ce-toolbar__settings-btn {
-    background-color: var(--bg-color-light) !important;
-    color: var(--text-color-primary) !important;
+    background-color: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
     border: 1px solid var(--border-color);
 }
 
@@ -404,15 +450,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .ce-popover__item-icon {
-    background-color: var(--bg-color-medium) !important;
+    background-color: var(--bg-secondary) !important;
     box-shadow: none !important;
 }
 
 /* Inline Toolbar (Bold/Italic menu) */
 .ce-inline-toolbar {
-    background-color: var(--bg-color-light) !important;
+    background-color: var(--bg-tertiary) !important;
     border: 1px solid var(--border-color);
-    color: var(--text-color-primary) !important;
+    color: var(--text-primary) !important;
 }
 
 .ce-inline-tool:hover {
@@ -445,7 +491,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-container {
-    background-color: var(--bg-color-medium);
+    background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     width: 90%;
@@ -465,14 +511,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .modal-header h2 {
     margin: 0;
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     font-size: 1.5em;
 }
 
 .modal-close-btn {
     background: none;
     border: none;
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     font-size: 28px;
     cursor: pointer;
     padding: 0;
@@ -486,8 +532,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-close-btn:hover {
-    background-color: var(--bg-color-light);
-    color: var(--text-color-primary);
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
 .modal-content {
@@ -503,19 +549,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-section h3 {
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     margin-bottom: 10px;
     font-size: 1.2em;
 }
 
 .modal-section p {
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     margin-bottom: 8px;
     line-height: 1.5;
 }
 
 .modal-section code {
-    background-color: var(--bg-color-dark);
+    background-color: var(--bg-primary);
     padding: 2px 6px;
     border-radius: 3px;
     font-family: 'Courier New', monospace;
@@ -524,7 +570,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-section pre {
-    background-color: var(--bg-color-dark);
+    background-color: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 12px;
@@ -535,13 +581,13 @@ h1, h2, h3, h4, h5, h6 {
 .modal-section pre code {
     background: none;
     padding: 0;
-    color: var(--text-color-primary);
+    color: var(--text-primary);
     font-size: 0.85em;
     line-height: 1.4;
 }
 
 .modal-section ol {
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     margin-left: 20px;
     margin-bottom: 10px;
 }
@@ -566,7 +612,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-footer label {
-    color: var(--text-color-secondary);
+    color: var(--text-secondary);
     font-size: 0.9em;
     cursor: pointer;
     display: flex;
